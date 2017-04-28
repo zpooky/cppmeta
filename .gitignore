@@ -1,0 +1,8 @@
+.gdb_history
+.tags
+GPATH
+GRTAGS
+GTAGS
+*.out
+main
+*.o

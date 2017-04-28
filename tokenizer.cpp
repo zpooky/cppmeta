@@ -13,7 +13,7 @@ bool Tokenizer::is_newline(char c) const {
   return c == '\n';
 }
 
-void Tokenizer::tokenize() {
+std::vector<Token> Tokenizer::tokenize() {
   std::ifstream fs;
   // fs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   fs.open(file.name);
@@ -49,6 +49,7 @@ void Tokenizer::tokenize() {
   }
 
   push_back(result, location, token);
+  return result;
 }
 
 void push_back(std::vector<Token> &result, Location &location,
@@ -61,7 +62,3 @@ void push_back(std::vector<Token> &result, Location &location,
 }
 
 
-int main(){
-  Tokenizer t(File("./tokenizer.cpp"));
-  t.tokenize();
-}

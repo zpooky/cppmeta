@@ -2,6 +2,7 @@
 #define SP_CPP_META_TOKENIZER_H
 
 #include "entities.h"
+#include <vector>
 
 class Tokenizer {
 private:
@@ -14,7 +15,7 @@ private:
 public:
   Tokenizer(const File &p_file) : file(p_file) {
   }
-  void tokenize();
+  std::vector<Token> tokenize();
 };
 
 #endif
