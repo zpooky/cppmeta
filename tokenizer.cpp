@@ -50,6 +50,15 @@ std::vector<Token> Tokenizer::tokenize() {
         column += token.length();
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
+      } else if(datum == '\''){
+        push_back(result, location, token);
+        location = Location(lineno, Column(column, 0));
+
+        CharacterTokenizer st;
+        it = st.parse(begin, end, token);
+        column += token.length();
+        push_back(result, location, token);
+        location = Location(lineno, Column(column, 0));
       } else if (is_blank(datum)) {
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
@@ -102,7 +111,8 @@ bool is_append_separator(const std::string &token, char datum) {
   joined.resize(token.size() + sizeof(datum));
   joined.append(token);
   joined.push_back(datum);
-  return end_with(joined, ";");
+  //TODO
+  return false;
 }
 
 bool is_prepend_separator(const std::string &token, char datum) {

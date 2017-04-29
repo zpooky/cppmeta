@@ -33,4 +33,22 @@ public:
   }
 };
 
+class CharacterTokenizer {
+  public:
+  template <typename Iterator>
+  Iterator parse(Iterator it, Iterator end, std::string &result) {
+    bool c = true;
+    while (it != end && c) {
+      char datum = *(it)++;
+      if (datum == '\'') {
+        if (!result.empty() && result.back() != '\\') {
+          c = false;
+        }
+      }
+      result.push_back(datum);
+    }
+    return it;
+  }
+};
+
 #endif
