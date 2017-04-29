@@ -1,41 +1,35 @@
 #ifndef SP_CPP_META_AST_H
 #define SP_CPP_META_AST_H
 
+#include "entities.h"
 #include <vector>
 
-struct FunctionAST {
-};
+struct NamespaceAST {};
 
-struct FunctionPointerAST {
-};
+struct FunctionAST {};
 
-class OperatorAST {
-};
+struct FunctionPointerAST {};
 
-struct ConstructorAST {
-};
+struct OperatorAST {};
 
-struct DestructorAST {
-};
+struct ConstructorAST {};
 
-struct MemberAST {
-};
+struct DestructorAST {};
 
-struct ExternalAST {
-};
+struct MemberAST {};
 
-struct TypedefAST {
-};
+struct ExternalAST {};
 
-struct UsingAST {
-};
+struct TypedefAST {};
 
-struct StaticAST{
+struct UsingAST {};
+
+struct StaticAST {
   std::vector<MemberAST> members;
   std::vector<FunctionAST> functions;
 };
 
-class ScopeAST {
+struct ScopeAST {
   std::vector<ConstructorAST> constructors;
   std::vector<MemberAST> members;
   std::vector<OperatorAST> operators;
@@ -43,24 +37,25 @@ class ScopeAST {
   StaticAST staticAST;
   std::vector<TypedefAST> typdefs;
   std::vector<UsingAST> usings;
-
-};
-
-struct StructAST {
 };
 
 struct ClassAST {
+  Token name;
   DestructorAST dtorAST;
   /**/
   ScopeAST publicAST;
   ScopeAST privateAST;
   ScopeAST protectedAST;
+
+  ClassAST(const Token &p_name)
+      : name(p_name), dtorAST(), publicAST(), privateAST(), protectedAST() {
+  }
 };
 
 struct FileAST {
   std::vector<ClassAST> m_classes;
 
-  void push_back(const ClassAST&ast){
+  void push_back(const ClassAST &ast) {
     m_classes.push_back(ast);
   }
 };

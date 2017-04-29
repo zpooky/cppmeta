@@ -12,6 +12,8 @@ $(EXEC): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $(EXEC)
 
 # To obtain object files
+# $@ Contains the target file name.
+# $< Contains the first dependency file name.
 %.o: %.cpp
 	$(CC) -c $(CC_FLAGS) $< -o $@
 
