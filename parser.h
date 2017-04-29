@@ -8,7 +8,7 @@
 namespace {
 class ClassParser {
   public:
-  ClassAST parse(std::vector<Token>&);
+  ClassAST parse(const std::vector<Token>&);
 };
 
 }
@@ -18,7 +18,7 @@ public:
   Parser() {
   }
 
-  FileAST parse(std::vector<Token> &);
+  FileAST parse(const std::vector<Token> &);
 };
 
 #endif

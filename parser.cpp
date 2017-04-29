@@ -1,10 +1,10 @@
 #include "parser.h"
 
-ClassAST ClassParser::parse(std::vector<Token>&){
+ClassAST ClassParser::parse(const std::vector<Token>&){
   return ClassAST{};
 }
 
-FileAST Parser::parse(std::vector<Token> &tokens) {
+FileAST Parser::parse(const std::vector<Token> &tokens) {
   FileAST file;
   for (auto &token : tokens) {
     if (token == "class") {

@@ -14,6 +14,17 @@ struct Column {
   column_t end;
   Column(column_t p_begin, column_t p_end) : begin(p_begin), end(p_end) {
   }
+  std::string to_string() const {
+    std::string result;
+    result.append("[");
+    result.append("b:");
+    result.append(std::to_string(begin));
+    result.append(",");
+    result.append("e:");
+    result.append(std::to_string(end));
+    result.append("]");
+    return result;
+  }
 };
 
 struct Location {
@@ -21,6 +32,17 @@ struct Location {
   Column column;
   Location(line_t p_line, const Column &p_column)
       : line(p_line), column(p_column) {
+  }
+  std::string to_string() const {
+    std::string result;
+    result.append("[");
+    result.append("l:");
+    result.append(std::to_string(line));
+    result.append(",");
+    result.append("col:");
+    result.append(column.to_string());
+    result.append("]");
+    return result;
   }
 };
 
@@ -36,6 +58,17 @@ struct Token {
   }
   bool operator==(const std::string &t) const {
     return token == t;
+  }
+
+  std::string to_string() const {
+    std::string result;
+    result.append("[");
+    result.append(token);
+    result.append(",");
+    result.append("loc:");
+    result.append(location.to_string());
+    result.append("]");
+    return result;
   }
 };
 
