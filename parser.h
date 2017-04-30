@@ -8,7 +8,17 @@
 namespace {
 class ClassParser {
 public:
-  ClassAST parse(const std::vector<Token> &);
+  template <typename Iterator>
+  ClassAST parse(Iterator it, Iterator end) {
+    /*
+     * typedef class {
+     * } name;
+     * class name {
+     * };
+     */
+    // ClassAST ast;
+    return ClassAST(Token("", Location(0, Column(0, 0))));
+  }
 };
 
 template <typename Iterator>

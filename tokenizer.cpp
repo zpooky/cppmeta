@@ -1,3 +1,6 @@
+/*
+ * wasd
+ */
 #include "tokenizer.h"
 #include <array>
 #include <fstream>
@@ -6,8 +9,7 @@
 
 bool is_blank(char c);
 bool is_newline(char c);
-bool is_prepend_separator(const std::string &, char);
-bool is_append_separator(const std::string &, char);
+bool is_inclusive_separator(std::string &token, char datum, std::string &out);
 bool is_inclusive_separator(char);
 
 void push_back(std::vector<Token> &, Location &, std::string &);
@@ -40,6 +42,7 @@ std::vector<Token> Tokenizer::tokenize() {
     while (it != end) {
       auto begin = it;
       char datum = *(it)++;
+      std::string out;
 
       if (datum == '"') {
         push_back(result, location, token);
@@ -50,7 +53,7 @@ std::vector<Token> Tokenizer::tokenize() {
         column += token.length();
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
-      } else if(datum == '\''){
+      } else if (datum == '\'') {
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
 
@@ -62,13 +65,15 @@ std::vector<Token> Tokenizer::tokenize() {
       } else if (is_blank(datum)) {
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
-      } else if (is_append_separator(token, datum)) {
-        token.push_back(datum);
-
+      } else if (is_inclusive_separator(token, datum, out)) {
+        size_t token_length = token.length();
         push_back(result, location, token);
-        location = Location(lineno, Column(column, 0));
-      } else if (is_prepend_separator(token, datum)) {
-        // TODO
+
+        location =
+            Location(lineno, Column((column + token_length) - out.length(), 0));
+        push_back(result, location, out);
+
+        location = Location(lineno, Column(column + 1, 0));
       } else if (is_inclusive_separator(datum)) {
         push_back(result, location, token);
 
@@ -106,22 +111,21 @@ bool end_with(const std::string &token, const std::string &end) {
   return false;
 }
 
-bool is_append_separator(const std::string &token, char datum) {
+bool is_inclusive_separator(std::string &token, char datum, std::string &out) {
   std::string joined;
   joined.resize(token.size() + sizeof(datum));
   joined.append(token);
   joined.push_back(datum);
-  //TODO
-  return false;
-}
 
-bool is_prepend_separator(const std::string &token, char datum) {
-  std::string joined;
-  joined.resize(token.size() + sizeof(datum));
-  joined.append(token);
-  joined.push_back(datum);
-  return end_with(joined, "/*") || end_with(joined, "*\\") ||
-         end_with(joined, "//");
+  std::array<std::string, 3> pool{"/*", "*\\", "//"};
+  for (const auto &p : pool) {
+    if (end_with(joined, p)) {
+      token = joined.substr(0, joined.length() - p.length());
+      out = p;
+      return true;
+    }
+  }
+  return false;
 }
 
 bool is_inclusive_separator(char datum) {
