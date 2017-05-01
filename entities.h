@@ -3,8 +3,8 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <string>
 #include <cstring>
+#include "String.h"
 
 using column_t = uint32_t;
 using line_t = uint32_t;
@@ -14,8 +14,8 @@ struct Column {
   column_t end;
   Column(column_t p_begin, column_t p_end) : begin(p_begin), end(p_end) {
   }
-  std::string to_string() const {
-    std::string result;
+  String to_string() const {
+    String result;
     result.append("[");
     result.append("b:");
     result.append(std::to_string(begin));
@@ -33,8 +33,8 @@ struct Location {
   Location(line_t p_line, const Column &p_column)
       : line(p_line), column(p_column) {
   }
-  std::string to_string() const {
-    std::string result;
+  String to_string() const {
+    String result;
     result.append("[");
     result.append("l:");
     result.append(std::to_string(line));
@@ -47,21 +47,21 @@ struct Location {
 };
 
 struct Token {
-  std::string token;
+  String token;
   Location location;
-  Token(const std::string &p_token, const Location &p_loc)
+  Token(const String &p_token, const Location &p_loc)
       : token(p_token), location(p_loc) {
   }
 
   bool operator==(const char *t) const {
     return std::strcmp(token.c_str(), t) == 0;
   }
-  bool operator==(const std::string &t) const {
+  bool operator==(const String &t) const {
     return token == t;
   }
 
-  std::string to_string() const {
-    std::string result;
+  String to_string() const {
+    String result;
     result.append("[");
     result.append(token);
     result.append(",");
@@ -73,8 +73,8 @@ struct Token {
 };
 
 struct File {
-  std::string name;
-  File(const std::string &p_name) : name(p_name) {
+  String name;
+  File(const String &p_name) : name(p_name) {
   }
 };
 #endif

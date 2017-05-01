@@ -2,18 +2,18 @@
  * wasd
  */
 #include "tokenizer.h"
+#include "String.h"
 #include <array>
 #include <fstream>
-#include <string>
 #include <vector>
 
 bool is_blank(char c);
 bool is_newline(char c);
-bool is_inclusive_separator(std::string &token, char datum, std::string &out);
+bool is_inclusive_separator(String &token, char datum, String &out);
 bool is_inclusive_separator(char);
 
-void push_back(std::vector<Token> &, Location &, std::string &);
-std::string read_line(std::ifstream &);
+void push_back(std::vector<Token> &, Location &, String &);
+String read_line(std::ifstream &);
 
 template <size_t N>
 bool contains(char datum, const std::array<char, N> &);
@@ -21,7 +21,7 @@ bool contains(char datum, const std::array<char, N> &);
 std::vector<Token> Tokenizer::tokenize() {
   std::ifstream fs;
   // fs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-  fs.open(file.name);
+  fs.open(file.name.c_str());
   if (!fs.is_open()) {
     throw "wtf";
   }
@@ -34,17 +34,19 @@ std::vector<Token> Tokenizer::tokenize() {
     uint32_t column(0);
     Location location(lineno, Column(column, 0));
 
-    std::string token;
-    std::string line = read_line(fs);
+    String token;
+    String line = read_line(fs);
 
     auto it = line.begin();
     auto end = line.end();
     while (it != end) {
       auto begin = it;
       char datum = *(it)++;
-      std::string out;
+      String out;
 
       if (datum == '"') {
+        // This is broke since a comment can contain "(example:/*"*/this will be
+        // string
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
 
@@ -53,6 +55,7 @@ std::vector<Token> Tokenizer::tokenize() {
         column += token.length();
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
+
       } else if (datum == '\'') {
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
@@ -62,9 +65,11 @@ std::vector<Token> Tokenizer::tokenize() {
         column += token.length();
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
+
       } else if (is_blank(datum)) {
         push_back(result, location, token);
         location = Location(lineno, Column(column, 0));
+
       } else if (is_inclusive_separator(token, datum, out)) {
         size_t token_length = token.length();
         push_back(result, location, token);
@@ -74,6 +79,7 @@ std::vector<Token> Tokenizer::tokenize() {
         push_back(result, location, out);
 
         location = Location(lineno, Column(column + 1, 0));
+
       } else if (is_inclusive_separator(datum)) {
         push_back(result, location, token);
 
@@ -82,6 +88,7 @@ std::vector<Token> Tokenizer::tokenize() {
         push_back(result, location, token);
 
         location = Location(lineno, Column(column + 1, 0));
+
       } else {
         token.push_back(datum);
       }
@@ -95,32 +102,33 @@ std::vector<Token> Tokenizer::tokenize() {
 }
 
 bool is_blank(char c) {
-  return c == ' ' || c == '\t' || c == '\r';
+  return c == ' ' || c == '\t' || c == '\r' || c == char(0);
 }
 
 bool is_newline(char c) {
   return c == '\n';
 }
 
-bool end_with(const std::string &token, const std::string &end) {
+bool end_with(const String &token, const String &end) {
   size_t len = token.length();
   if (len > end.length()) {
-    std::string sub = token.substr(len - end.length());
+    String sub = token.substr(len - end.length());
     return sub == end;
   }
   return false;
 }
 
-bool is_inclusive_separator(std::string &token, char datum, std::string &out) {
-  std::string joined;
-  joined.resize(token.size() + sizeof(datum));
+bool is_inclusive_separator(String &token, char datum, String &out) {
+  String joined;
+  joined.resize(token.length() + sizeof(datum));
   joined.append(token);
   joined.push_back(datum);
 
-  std::array<std::string, 3> pool{"/*", "*\\", "//"};
+  std::array<String, 4> pool{"/*", "*\\", "//", "::"};
   for (const auto &p : pool) {
     if (end_with(joined, p)) {
-      token = joined.substr(0, joined.length() - p.length());
+      size_t end = joined.length() - p.length();
+      token = joined.substr(0, end);
       out = p;
       return true;
     }
@@ -134,15 +142,16 @@ bool is_inclusive_separator(char datum) {
   return contains(datum, separtors);
 }
 
-void push_back(std::vector<Token> &result, Location &loc, std::string &token) {
+void push_back(std::vector<Token> &result, Location &loc, String &token) {
   if (!token.empty()) {
     loc.column.end = token.length();
     result.emplace_back(token, loc);
     token.clear();
   }
 }
-std::string read_line(std::ifstream &fs) {
-  std::string result;
+
+String read_line(std::ifstream &fs) {
+  String result;
 
   char datum = fs.get();
   while (fs.good()) {

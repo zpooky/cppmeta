@@ -33,6 +33,11 @@ bool is_class(Iterator it, Iterator end) {
 
 template <typename Iterator>
 bool is_preprocessor(Iterator it, Iterator end) {
+  const auto &token = *it;
+
+  if (token.token.starts_with("#")) {
+    return true;
+  }
   return false;
 }
 
