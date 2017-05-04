@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstddef>
 #include <memory>
+#include <string.h>
 #include <type_traits>
 
 template <typename data_type, typename Allocator>
@@ -16,6 +17,7 @@ private:
   size_t m_capacity;
 
   static_assert(std::is_trivially_copyable<data_type>::value, "");
+  using SelfType = BasicString<data_type, Allocator>;
 
 public:
   constexpr BasicString() : m_str(nullptr), m_index(0), m_capacity(0) {
@@ -54,26 +56,31 @@ public:
     }
   }
 
-  BasicString(BasicString<char, Allocator> &&o) : BasicString() {
+  BasicString(SelfType &&o) : BasicString() {
     swap(o);
   }
 
-  BasicString(const BasicString<char, Allocator> &o)
+  BasicString(const SelfType &o)
       : BasicString(o.m_str, o.m_index, o.m_capacity) {
   }
 
-  BasicString<char, Allocator> &operator=(BasicString<char, Allocator> &&o) {
+  BasicString<char, Allocator> &operator=(SelfType &&o) {
     swap(o);
     return *this;
   }
 
-  BasicString<char, Allocator> &
-  operator=(const BasicString<char, Allocator> &o) {
-    swap(BasicString(o.m_str, o.m_index, o.m_capacity));
+  SelfType &operator=(const SelfType &o) {
+    swap(SelfType(o.m_str, o.m_index, o.m_capacity));
     return *this;
   }
 
-  const data_type &operator[](size_t idx) const {
+  const data_type at(size_t idx) const {
+    if (idx < m_index) {
+      return m_str[idx];
+    }
+    return 0;
+  }
+  const data_type operator[](size_t idx) const {
     assert(idx < m_index);
     return m_str[idx];
   }
@@ -86,7 +93,7 @@ public:
   void resize(size_t sz) {
     size_t realloc = std::max(sz, m_index);
     if (realloc != sz) {
-      swap(BasicString(m_str, m_index, realloc));
+      swap(SelfType(m_str, m_index, realloc));
     }
   }
 
@@ -124,11 +131,11 @@ public:
     return m_str[m_index - 1];
   }
 
-  bool operator==(const BasicString &o) const {
+  bool operator==(const SelfType &o) const {
     return m_index == o.m_index && strncmp(m_str, o.m_str, m_index) == 0;
   }
 
-  bool operator!=(const BasicString &o) const {
+  bool operator!=(const SelfType &o) const {
     return !operator==(o);
   }
 
@@ -163,7 +170,7 @@ public:
     append(str.data(), str.size());
   }
 
-  BasicString<char, Allocator> substr(size_t start, size_t end) const {
+  SelfType substr(size_t start, size_t end) const {
     size_t e = std::min(m_capacity, end);
     if (start < e) {
       return {m_str + start, end - start};
@@ -171,7 +178,7 @@ public:
     return {};
   }
 
-  BasicString<char, Allocator> substr(size_t start) const {
+  SelfType substr(size_t start) const {
     return substr(start, length());
   }
 
@@ -179,13 +186,13 @@ public:
     m_index = 0;
   }
 
-  void swap(BasicString<char, Allocator> &o) noexcept {
+  void swap(SelfType &o) noexcept {
     std::swap(m_str, o.m_str);
     std::swap(m_index, o.m_index);
     std::swap(m_capacity, o.m_capacity);
   }
 
-  void swap(BasicString<char, Allocator> &&o) noexcept {
+  void swap(SelfType &&o) noexcept {
     swap(o);
   }
 
@@ -212,11 +219,89 @@ public:
     return starts_with(str, strlen(str));
   }
 
+  bool ends_with(const data_type *end, size_t p_length) const {
+    if (length() >= p_length) {
+      const data_type *this_end = m_str - (p_length - length());
+      return strcmp(this_end, end) == 0;
+    }
+    return false;
+  }
+
+  bool ends_with(const data_type *end) const {
+    return ends_with(end, strlen(end));
+  }
+
+  bool ends_with(const SelfType &end) const {
+    return ends_with(end.m_str, end.length());
+  }
+
+  template <size_t N>
+  bool ends_with(const data_type (&str)[N]) const {
+    return ends_with(str, N);
+  }
+
+  void drop_right(size_t p_length) {
+    size_t mask = std::min(p_length, length());
+    size_t offset = length() - mask;
+    memset(m_str + offset, 0, length() - offset);
+    m_index = offset;
+  }
+
+  template <size_t N>
+  size_t drain_front(std::array<data_type, N> &drain) {
+    size_t length = std::min(N, m_index);
+    memcpy(drain.data(), m_str, length);
+    move_left(length);
+    return length;
+  }
+
+  void move_left(size_t length) {
+    size_t len = std::min(length, m_index);
+    size_t remaining = m_index - len;
+    memmove(m_str, m_str + len, remaining);
+    m_index = remaining;
+    memset(m_str + remaining, 0, len - remaining);
+  }
+
+  size_t shrink_to(const data_type *it) {
+    size_t idx = it - m_str;
+    move_left(idx);
+    return idx;
+  }
+
+  ssize_t find(const data_type *needle, size_t length) const {
+    if (length == 0) {
+      return 0;
+    }
+    size_t index = m_index;
+    for (size_t i(0); i < m_index; ++i) {
+      if (length <= index--) {
+        if (memcmp(m_str + i, needle, length) == 0) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  ssize_t find(const data_type *needle) const {
+    return find(needle, strlen(needle));
+  }
+
+  template <size_t N>
+  ssize_t find(const data_type (&str)[N]) const {
+    return find(str, N);
+  }
+
+  ssize_t find(const SelfType &needle) const {
+    return find(needle.m_str, needle.m_index);
+  }
+
 private:
   void require(size_t sz) {
     if (require_alloc(sz)) {
       size_t capacity = std::max(m_capacity * 2, m_capacity + sz);
-      swap(BasicString(m_str, m_index, capacity));
+      swap(SelfType(m_str, m_index, capacity));
     }
   }
 

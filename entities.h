@@ -1,10 +1,10 @@
 #ifndef SP_CPP_META_ENTITIES_H
 #define SP_CPP_META_ENTITIES_H
 
+#include "String.h"
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include "String.h"
 
 using column_t = uint32_t;
 using line_t = uint32_t;
@@ -12,8 +12,10 @@ using line_t = uint32_t;
 struct Column {
   column_t begin;
   column_t end;
+
   Column(column_t p_begin, column_t p_end) : begin(p_begin), end(p_end) {
   }
+
   String to_string() const {
     String result;
     result.append("[");
@@ -51,6 +53,9 @@ struct Token {
   Location location;
   Token(const String &p_token, const Location &p_loc)
       : token(p_token), location(p_loc) {
+  }
+  Token(const String &p_token, line_t p_line, column_t p_start)
+      : token(p_token), location(p_line, Column(p_start, p_token.length())) {
   }
 
   bool operator==(const char *t) const {

@@ -1,4 +1,3 @@
-#include "StripComments.h"
 #include "parser.h"
 #include "tokenizer.h"
 #include <iostream>
@@ -11,10 +10,7 @@ int main() {
     std::cout << token.to_string() << "\n";
   }
 
-  StripComments scomment;
-  auto strippedTokens = scomment.parse(tokens);
-
   Parser parser;
-  FileAST ast = parser.parse(strippedTokens);
+  FileAST ast = parser.parse(tokens);
   return 0;
 }
