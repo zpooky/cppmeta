@@ -183,6 +183,7 @@ public:
   }
 
   void clear() {
+    memset(m_str, 0, m_index);
     m_index = 0;
   }
 
@@ -204,8 +205,8 @@ public:
   }
 
   bool starts_with(const data_type *str, size_t length) const {
-    if (m_index <= length) {
-      return strncmp(m_str, str, length);
+    if (length <= m_index) {
+      return strncmp(m_str, str, length) == 0;
     }
     return false;
   }
@@ -217,6 +218,10 @@ public:
 
   bool starts_with(const data_type *str) const {
     return starts_with(str, strlen(str));
+  }
+
+  bool starts_with(const SelfType &str) const {
+    return starts_with(str.m_str, str.m_index);
   }
 
   bool ends_with(const data_type *end, size_t p_length) const {
@@ -259,8 +264,8 @@ public:
     size_t len = std::min(length, m_index);
     size_t remaining = m_index - len;
     memmove(m_str, m_str + len, remaining);
+    memset(m_str + remaining, 0, m_index - remaining);
     m_index = remaining;
-    memset(m_str + remaining, 0, len - remaining);
   }
 
   size_t shrink_to(const data_type *it) {

@@ -1,60 +1,14 @@
 #ifndef SP_CPP_META_TOKENIZER_H
 #define SP_CPP_META_TOKENIZER_H
 
+#include "LineMeta.h"
 #include "entities.h"
-#include <array>
 #include <vector>
 
-struct LineMeta {
-  const line_t number;
-  String data;
-  line_t column;
+template <typename Iterator>
+Iterator do_parse(Iterator it, Iterator end, String &result, char c);
 
-  LineMeta(line_t p_number, String &&p_data)
-      : number(p_number), data(std::move(p_data)), column(0) {
-  }
-
-  auto begin() const {
-    return data.begin();
-  }
-
-  auto end() const {
-    return data.end();
-  }
-
-  void shrink_to(const char *it) {
-    size_t number = data.shrink_to(it);
-    column += number;
-  }
-
-  void move_left(size_t number) {
-    data.move_left(number);
-    column += number;
-  }
-
-  bool is_empty() {
-    return data.empty();
-  }
-
-  char peek() const {
-    return data[0];
-  }
-
-  char pop() {
-    std::array<char, 1> chars;
-    size_t length = data.drain_front(chars);
-    if (length == 1) {
-      ++column;
-      return chars[0];
-    }
-    assert(false);
-  }
-
-  Location loc() const {
-    return Location(number, Column(column, 0));
-  }
-};
-
+/*ITokenizer*/
 class ITokenizer {
 public:
   virtual ITokenizer *parse(LineMeta &, std::vector<Token> &) = 0;
@@ -63,10 +17,10 @@ public:
   }
 };
 
+/*Tokenizer*/
 class Tokenizer {
 private:
   File file;
-  ITokenizer *impl;
 
 public:
   Tokenizer(const File &p_file) : file(p_file) {
@@ -75,9 +29,7 @@ public:
   std::vector<Token> tokenize();
 };
 
-template <typename Iterator>
-Iterator do_parse(Iterator it, Iterator end, String &result, char c);
-
+/*StringTokenizer*/
 class StringTokenizer {
 public:
   ITokenizer *parse(LineMeta &line, std::vector<Token> &result) {
@@ -90,6 +42,7 @@ public:
   }
 };
 
+/*CharacterTokenizer*/
 class CharacterTokenizer {
 public:
   ITokenizer *parse(LineMeta &line, std::vector<Token> &result) {
@@ -102,6 +55,49 @@ public:
   }
 };
 
+/*LineCommentTokenizer*/
+class LineCommentTokenizer {
+public:
+  ITokenizer *parse(LineMeta &line, std::vector<Token> &) {
+    if (line.data.starts_with("//")) {
+      line.data.clear();
+    }
+    return nullptr;
+  }
+};
+
+/*BlockCommentTokenizer*/
+class BlockCommentTokenizer : public ITokenizer {
+private:
+public:
+  ITokenizer *parse(LineMeta &line, std::vector<Token> &) {
+    // const String begin("#<{(|");
+    // if (line.data.starts_with(begin)) {
+    const String end = "*/";
+    ssize_t index = line.data.find(end);
+    if (index != -1) {
+      line.move_left(index + end.length());
+      return nullptr;
+    } else {
+      line.data.clear();
+    }
+    // }
+    return this;
+  }
+};
+
+/*BaseTokenizer*/
+class BaseTokenizer : public ITokenizer {
+private:
+  BlockCommentTokenizer blockTokenizer;
+
+public:
+  BaseTokenizer();
+
+  ITokenizer *parse(LineMeta &, std::vector<Token> &);
+};
+
+/*Util*/
 template <typename Iterator>
 Iterator do_parse(Iterator it, Iterator end, String &result, char c) {
   bool cont = true;
@@ -116,38 +112,23 @@ Iterator do_parse(Iterator it, Iterator end, String &result, char c) {
   }
   return it;
 }
-
-class LineCommentTokenizer {
-public:
-  ITokenizer *parse(LineMeta &line, std::vector<Token> &) {
-    if (line.data.starts_with("//")) {
-      line.data.clear();
-    }
-    return nullptr;
+/**/
+struct TokenResult {
+  LineMeta &line;
+  Location location;
+  std::vector<Token> &result;
+  TokenResult(std::vector<Token> &p_result, LineMeta &p_line)
+      : line(p_line), location(0, Column(0, 0)), result(p_result) {
   }
-};
 
-class BlockCommentTokenizer : public ITokenizer {
-public:
-  ITokenizer *parse(LineMeta &line, std::vector<Token> &) {
-    if (line.data.starts_with("/*")) {
-      String end = "*/";
-      ssize_t index = line.data.find(end);
-      if (index != -1) {
-        line.move_left(index + end.length());
-        return nullptr;
-      }
+  void push_back(String &token) {
+    if (!token.empty()) {
+      location.column.end = token.length();
+      result.emplace_back(token, location);
+      token.clear();
     }
-    return this;
+    location = line.loc();
   }
-};
-
-class BaseTokenizer : public ITokenizer {
-private:
-  BlockCommentTokenizer blockTokenizer;
-public:
-  BaseTokenizer();
-  ITokenizer *parse(LineMeta &, std::vector<Token> &);
 };
 
 #endif

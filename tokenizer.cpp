@@ -9,81 +9,79 @@
 #include <initializer_list>
 #include <vector>
 
+/*Util*/
 bool is_newline(char c);
 
-void push_back(std::vector<Token> &, Location &, String &);
 String read_line(std::ifstream &);
 
 bool contains(char, const std::initializer_list<char> &);
 
-// bool is_token(String &token, char datum, const String &compare);
 bool is_token(LineMeta &, const std::initializer_list<char> &);
 bool is_token(LineMeta &, const String &);
 bool is_token(LineMeta &, char datum);
 bool is_token(LineMeta &, const std::initializer_list<String> &);
 
+/*BaseTokenizer*/
 BaseTokenizer::BaseTokenizer() : blockTokenizer() {
 }
 
-ITokenizer *BaseTokenizer::parse(LineMeta &line, std::vector<Token> &result) {
-  Location location(0, Column(0, 0));
+ITokenizer *BaseTokenizer::parse(LineMeta &line, std::vector<Token> &tokens) {
   String token;
+  TokenResult result(tokens, line);
 
   ITokenizer *tokenizer = nullptr;
   while (!line.is_empty()) {
     if (is_token(line, '"')) {
-      push_back(result, location, token);
+      result.push_back(token);
 
       StringTokenizer st;
-      tokenizer = st.parse(line, result);
+      tokenizer = st.parse(line, tokens);
 
     } else if (is_token(line, '\'')) {
-      push_back(result, location, token);
+      result.push_back(token);
 
       CharacterTokenizer st;
-      tokenizer = st.parse(line, result);
+      tokenizer = st.parse(line, tokens);
 
     } else if (is_token(line, {' ', '\t', '\r', char(0), '\n'})) {
-      push_back(result, location, token);
+      result.push_back(token);
+      line.pop();
 
     } else if (is_token(line, "//")) {
-      push_back(result, location, token);
+      result.push_back(token);
 
       LineCommentTokenizer tok;
-      tokenizer = tok.parse(line, result);
+      tokenizer = tok.parse(line, tokens);
 
     } else if (is_token(line, "/*")) {
-      push_back(result, location, token);
+      result.push_back(token);
 
-      tokenizer = blockTokenizer.parse(line, result);
+      tokenizer = blockTokenizer.parse(line, tokens);
+
+    } else if (is_token(line, {"*/", "::", "==", "!=", "<=", ">=", "||", "&&",
+                               "--", "++"})) {
+      result.push_back(token);
+      // assuming its only match 2 length token
+      token.push_back(line.pop());
+      token.push_back(line.pop());
+      result.push_back(token);
 
     } else if (is_token(line,
-                        {"*/", "::", "==", "!=", "<=", ">=", "||", "&&"})) {
-      push_back(result, location, token);
-      // TODO
+                        {'=', ',', ';', '(', ')', '{', '}', '<', '>', '[',
+                         ']', '.', '&', '~', '!', '|', '^', '%', '-', '+'})) {
+      result.push_back(token);
 
-    } else if (is_token(line, {',', ';', '(', ')', '{', '}', '<', '>', '[', ']',
-                               '.', '&', '~', '!', '|', '^', '%', '-', '+'})) {
-      push_back(result, location, token);
-
-      location = line.loc();
       token.push_back(line.pop());
-      push_back(result, location, token);
+      result.push_back(token);
 
     } else {
-      if (token.empty()) {
-        location = line.loc();
-      }
       token.push_back(line.pop());
     }
   }
-  push_back(result, location, token);
-  if (tokenizer == nullptr) {
-    tokenizer = this;
-  }
+  result.push_back(token);
   return tokenizer;
 }
-
+/*Tokenizer*/
 std::vector<Token> Tokenizer::tokenize() {
   std::ifstream fs;
   // fs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -107,6 +105,9 @@ std::vector<Token> Tokenizer::tokenize() {
 
     while (!meta.is_empty()) {
       tokenizer = tokenizer->parse(meta, result);
+      if (tokenizer == nullptr) {
+        tokenizer = &baseTokenizer;
+      }
     }
 
     ++lineno;
@@ -114,16 +115,9 @@ std::vector<Token> Tokenizer::tokenize() {
   return result;
 }
 
+/*Util*/
 bool is_newline(char c) {
   return c == '\n';
-}
-
-void push_back(std::vector<Token> &result, Location &loc, String &token) {
-  if (!token.empty()) {
-    loc.column.end = token.length();
-    result.emplace_back(token, loc);
-    token.clear();
-  }
 }
 
 String read_line(std::ifstream &fs) {
