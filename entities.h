@@ -13,7 +13,22 @@ struct Column {
   column_t begin;
   column_t end;
 
+  Column() : begin(0), end(0) {
+  }
+
   Column(column_t p_begin, column_t p_end) : begin(p_begin), end(p_end) {
+  }
+
+  // Column(const Column &o) : Column(o.begin, o, end) {
+  // }
+  //
+  // Column(Column &&o) : Column() {
+  //   swap(o);
+  // }
+
+  void swap(Column &o) {
+    std::swap(o.begin, begin);
+    std::swap(o.end, end);
   }
 
   String to_string() const {
@@ -32,9 +47,35 @@ struct Column {
 struct Location {
   line_t line;
   Column column;
+  Location() : line(0), column(Column(0, 0)) {
+  }
+
   Location(line_t p_line, const Column &p_column)
       : line(p_line), column(p_column) {
   }
+
+  Location(const Location &o) : line(o.line), column(o.column) {
+  }
+
+  Location(Location &&o) : Location() {
+    swap(o);
+  }
+
+  // Location &operator=(Location o) {
+  //   swap(o);
+  //   return *this;
+  // }
+
+  Location &operator=(Location &&o) {
+    swap(o);
+    return *this;
+  }
+
+  void swap(Location &o) {
+    std::swap(line, o.line);
+    std::swap(column, o.column);
+  }
+
   String to_string() const {
     String result;
     result.append("[");
@@ -51,6 +92,10 @@ struct Location {
 struct Token {
   String token;
   Location location;
+
+  Token() : token(), location() {
+  }
+
   Token(const String &p_token, const Location &p_loc)
       : token(p_token), location(p_loc) {
   }
@@ -58,11 +103,33 @@ struct Token {
       : token(p_token), location(p_line, Column(p_start, p_token.length())) {
   }
 
+  Token(const Token &o) : token(o.token), location(o.location) {
+  }
+
+  Token(Token &&o) : Token() {
+    swap(o);
+  }
+
+  Token &operator=(Token o) {
+    swap(o);
+    return *this;
+  }
+
+  Token &operator=(Token &&o) {
+    swap(o);
+    return *this;
+  }
+
   bool operator==(const char *t) const {
     return std::strcmp(token.c_str(), t) == 0;
   }
   bool operator==(const String &t) const {
     return token == t;
+  }
+
+  void swap(Token &o) {
+    std::swap(token, o.token);
+    location.swap(o.location);
   }
 
   String to_string() const {

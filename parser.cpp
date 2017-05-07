@@ -9,7 +9,8 @@ FileAST Parser::parse(const std::vector<Token> &tokens) {
     auto begin = it;
     const auto &token = *(it)++;
 
-    if (is_preprocessor(begin, end)) {
+    if (is_include(begin, end)) {
+    } else if (is_define(begin, end)) {
     } else if (is_class(begin, end)) {
       ClassParser parser;
       auto ast = parser.parse(begin, end);

@@ -67,8 +67,8 @@ ITokenizer *BaseTokenizer::parse(LineMeta &line, std::vector<Token> &tokens) {
       result.push_back(token);
 
     } else if (is_token(line,
-                        {'=', ',', ';', '(', ')', '{', '}', '<', '>', '[',
-                         ']', '.', '&', '~', '!', '|', '^', '%', '-', '+'})) {
+                        {'=', ',', ';', '(', ')', '{', '}', '<', '>', '[', ']',
+                         '.', '&', '~', '!', '|', '^', '%', '-', '+', '#'})) {
       result.push_back(token);
 
       token.push_back(line.pop());
