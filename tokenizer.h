@@ -2,16 +2,16 @@
 #define SP_CPP_META_TOKENIZER_H
 
 #include "LineMeta.h"
+#include "TokenResult.h"
 #include "entities.h"
 #include <vector>
 
-template <typename Iterator>
-Iterator do_parse(Iterator it, Iterator end, String &result, char c);
+void do_parse(LineMeta &, TokenResult &, char c);
 
 /*ITokenizer*/
 class ITokenizer {
 public:
-  virtual ITokenizer *parse(LineMeta &, std::vector<Token> &) = 0;
+  virtual ITokenizer *parse(LineMeta &, TokenResult &) = 0;
 
   virtual ~ITokenizer() {
   }
@@ -32,12 +32,9 @@ public:
 /*StringTokenizer*/
 class StringTokenizer {
 public:
-  ITokenizer *parse(LineMeta &line, std::vector<Token> &result) {
-    String token;
-    auto it = do_parse(line.begin(), line.end(), token, '"');
-    line.shrink_to(it);
+  ITokenizer *parse(LineMeta &line, TokenResult &result) {
+    do_parse(line, result, '"');
 
-    result.push_back(Token(token, line.number, line.column));
     return nullptr;
   }
 };
@@ -45,12 +42,9 @@ public:
 /*CharacterTokenizer*/
 class CharacterTokenizer {
 public:
-  ITokenizer *parse(LineMeta &line, std::vector<Token> &result) {
-    String token;
-    auto it = do_parse(line.begin(), line.end(), token, '\'');
-    line.shrink_to(it);
+  ITokenizer *parse(LineMeta &line, TokenResult &result) {
+    do_parse(line, result, '\'');
 
-    result.push_back(Token(token, line.number, line.column));
     return nullptr;
   }
 };
@@ -58,7 +52,7 @@ public:
 /*LineCommentTokenizer*/
 class LineCommentTokenizer {
 public:
-  ITokenizer *parse(LineMeta &line, std::vector<Token> &) {
+  ITokenizer *parse(LineMeta &line, TokenResult &) {
     if (line.data.starts_with("//")) {
       line.data.clear();
     }
@@ -70,7 +64,7 @@ public:
 class BlockCommentTokenizer : public ITokenizer {
 private:
 public:
-  ITokenizer *parse(LineMeta &line, std::vector<Token> &) {
+  ITokenizer *parse(LineMeta &line, TokenResult &) {
     // const String begin("#<{(|");
     // if (line.data.starts_with(begin)) {
     const String end = "*/";
@@ -94,41 +88,8 @@ private:
 public:
   BaseTokenizer();
 
-  ITokenizer *parse(LineMeta &, std::vector<Token> &);
+  ITokenizer *parse(LineMeta &, TokenResult &);
 };
 
-/*Util*/
-template <typename Iterator>
-Iterator do_parse(Iterator it, Iterator end, String &result, char c) {
-  bool cont = true;
-  while (it != end && cont) {
-    char datum = *(it)++;
-    if (datum == c) {
-      if (!result.empty() && result.back() != '\\') {
-        cont = false;
-      }
-    }
-    result.push_back(datum);
-  }
-  return it;
-}
-/**/
-struct TokenResult {
-  LineMeta &line;
-  Location location;
-  std::vector<Token> &result;
-  TokenResult(std::vector<Token> &p_result, LineMeta &p_line)
-      : line(p_line), location(0, Column(0, 0)), result(p_result) {
-  }
-
-  void push_back(String &token) {
-    if (!token.empty()) {
-      location.column.end = token.length();
-      result.emplace_back(token, location);
-      token.clear();
-    }
-    location = line.loc();
-  }
-};
 
 #endif

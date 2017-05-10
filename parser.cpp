@@ -16,7 +16,24 @@ FileAST Parser::parse(const std::vector<Token> &tokens) {
       auto ast = parser.parse(begin, end);
       file.push_back(ast);
     } else if (is_struct(begin, end)) {
-    } else if (is_function(begin, end)) {
+
+    } else if (is_function_declaration(begin, end)) {
+    // } else if (is_function_definition(begin, end)) {
+
+    // } else if (is_ctor_declaration(begin, end)) {
+    // } else if (is_ctor_definition(begin, end)) {
+    //   // TODO based on context
+    //   // BaseTokenizer(){}
+    //   // BaseTokenizer::BaseTokenizer(){}
+    //
+    // } else if (is_dtor_declaration(begin, end)) {
+    // } else if (is_dtor_definition(begin, end)) {
+    //   // TODO based on context
+    //   // ~BaseTokenizer(){}
+    //   // ~BaseTokenizer::BaseTokenizer(){}
+    //
+    // } else if (is_operator_declaration(begin, end)) {
+    // } else if (is_operator_definition(begin, end)) {
     }
   }
   return file;

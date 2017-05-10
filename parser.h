@@ -6,19 +6,66 @@
 #include "entities.h"
 #include <vector>
 
+class B {};
+class S : public virtual B {};
+class A : virtual public B {};
+
 namespace {
 class ClassParser {
 public:
   template <typename Iterator>
+  match::Step<Iterator> inheritance(match::Step<Iterator> &step,
+                                    std::vector<InheritanceAST> &inherits) {
+    auto it = step.it;
+
+    std::vector<Token> incap;
+    auto scope = match::Either("public", "private", "protected");
+    auto in_step = step.combination(incap, scope, String("virtual"));
+
+    if (!in_step) {
+      incap.emplace_back("public", 0, 0); // TODO fix support for infered Token
+      it = in_step.it;
+    }
+
+    Token type;
+    match::Step<Iterator> result = match::start(it, step.end).step(type);
+    if (result) {
+      inherits.emplace_back(/*TODO*/ Incapsulation::PUBLIC, TypeName(type));
+    }
+
+    return result;
+  }
+
+  template <typename Iterator>
   ClassAST parse(Iterator begin, Iterator end) {
     Token name;
-    auto start = match::start(begin, end).step("class").step(name).step("{");
+    std::vector<InheritanceAST> inherits;
+    auto start = match::start(begin, end) //
+                     .step("class")       //
+                     .step(name)          //
+                     .option(":")
+                     .repeat(
+                         [&](match::Step<Iterator> &step) { //
+                           return inheritance(step, inherits);
+                         },
+                         ",") //
+                     .step("{");
     Iterator it = start.it;
 
-    ClassAST class_ast(name);
+    ClassAST class_ast(name, inherits);
     if (start) {
+      Token scope;
+      auto scopeStart = match::start(it, end).step(scope).step(":");
+      // it = scopeStart.it;
+      if (!scopeStart) {
+        // scope = Token("private");
+      }
+
+      // ScopeParser scope;
+      // ScopeAST scope_ast = scope.parse(it, end);
+      // class_ast.push_back(scope, scope_ast);
     }
-    it = match::start(it, end).step("}");
+    it = match::start(it, end).step("}").step(";");
     /*
      * typedef class {
      * } name;
@@ -72,7 +119,7 @@ bool is_struct(Iterator begin, Iterator end) {
 }
 
 template <typename Iterator>
-bool is_function(Iterator it, Iterator end) {
+bool is_function_declaration(Iterator it, Iterator end) {
   return false;
 }
 } // namesapce anon

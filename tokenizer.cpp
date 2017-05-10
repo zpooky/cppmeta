@@ -25,9 +25,8 @@ bool is_token(LineMeta &, const std::initializer_list<String> &);
 BaseTokenizer::BaseTokenizer() : blockTokenizer() {
 }
 
-ITokenizer *BaseTokenizer::parse(LineMeta &line, std::vector<Token> &tokens) {
+ITokenizer *BaseTokenizer::parse(LineMeta &line, TokenResult &result) {
   String token;
-  TokenResult result(tokens, line);
 
   ITokenizer *tokenizer = nullptr;
   while (!line.is_empty()) {
@@ -35,13 +34,13 @@ ITokenizer *BaseTokenizer::parse(LineMeta &line, std::vector<Token> &tokens) {
       result.push_back(token);
 
       StringTokenizer st;
-      tokenizer = st.parse(line, tokens);
+      tokenizer = st.parse(line, result);
 
     } else if (is_token(line, '\'')) {
       result.push_back(token);
 
       CharacterTokenizer st;
-      tokenizer = st.parse(line, tokens);
+      tokenizer = st.parse(line, result);
 
     } else if (is_token(line, {' ', '\t', '\r', char(0), '\n'})) {
       result.push_back(token);
@@ -51,24 +50,24 @@ ITokenizer *BaseTokenizer::parse(LineMeta &line, std::vector<Token> &tokens) {
       result.push_back(token);
 
       LineCommentTokenizer tok;
-      tokenizer = tok.parse(line, tokens);
+      tokenizer = tok.parse(line, result);
 
     } else if (is_token(line, "/*")) {
       result.push_back(token);
 
-      tokenizer = blockTokenizer.parse(line, tokens);
+      tokenizer = blockTokenizer.parse(line, result);
 
     } else if (is_token(line, {"*/", "::", "==", "!=", "<=", ">=", "||", "&&",
-                               "--", "++"})) {
+                               "--", "++" /*, "<<", ">>"*/})) {
       result.push_back(token);
       // assuming its only match 2 length token
       token.push_back(line.pop());
       token.push_back(line.pop());
       result.push_back(token);
 
-    } else if (is_token(line,
-                        {'=', ',', ';', '(', ')', '{', '}', '<', '>', '[', ']',
-                         '.', '&', '~', '!', '|', '^', '%', '-', '+', '#'})) {
+    } else if (is_token(line, {'=', ',', ';', '(', ')', '{', '}',  '<',
+                               '>', '[', ']', '.', '&', '~', '!',  '|',
+                               '^', '%', '-', '+', '#', ':', '\\', '/'})) {
       result.push_back(token);
 
       token.push_back(line.pop());
@@ -90,7 +89,7 @@ std::vector<Token> Tokenizer::tokenize() {
     throw "wtf";
   }
 
-  std::vector<Token> result;
+  std::vector<Token> tokens;
 
   uint32_t lineno(0);
 
@@ -102,6 +101,7 @@ std::vector<Token> Tokenizer::tokenize() {
 
     String line = read_line(fs);
     LineMeta meta(lineno, std::move(line));
+    TokenResult result(tokens, meta);
 
     while (!meta.is_empty()) {
       tokenizer = tokenizer->parse(meta, result);
@@ -112,7 +112,7 @@ std::vector<Token> Tokenizer::tokenize() {
 
     ++lineno;
   }
-  return result;
+  return tokens;
 }
 
 /*Util*/
@@ -168,4 +168,27 @@ bool is_token(LineMeta &line, const std::initializer_list<String> &pool) {
     }
   }
   return false;
+}
+
+void do_parse(LineMeta &line, TokenResult &result, char c) {
+  if (line.peek() == c) {
+    String token;
+    token.push_back(line.pop());
+    result.push_back(token);
+
+    while (!line.is_empty()) {
+      char datum = line.pop();
+      if (datum == c) {
+        if (!token.empty() && token.back() != '\\') {
+          result.push_back(token);
+
+          // push_back('"')
+          token.push_back(datum);
+        }
+      } else {
+        token.push_back(datum);
+      }
+    }
+    result.push_back(token);
+  }
 }
