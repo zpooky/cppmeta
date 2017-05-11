@@ -8,11 +8,27 @@
 
 namespace match {
 
+struct Pattern {
+  bool match(const Token &match) const {
+    // TODO
+    return true;
+  }
+};
+
 struct Either {
   std::vector<String> constants;
 
   template <typename... Tail>
   Either(Tail &&... tail) : constants{std::forward<String>(tail)...} {
+  }
+
+  bool match(const Token &match) const {
+    for (const auto &current : constants) {
+      if (match == current) {
+        return true;
+      }
+    }
+    return false;
   }
 };
 
@@ -23,16 +39,6 @@ template <typename... Tail>
 Either either(Tail... tail) {
   return Either(std::forward<String>(tail)...);
 }
-
-// template <typename>
-// struct Step;
-//
-// template <typename Iterator>
-// struct Option {
-//   Step<Iterator> operator()(Iterator begin, Iterator end) {
-//     return Step<Iterator>(begin, end);
-//   }
-// };
 
 template <typename Iterator>
 struct Step {
@@ -49,18 +55,46 @@ struct Step {
   }
 
   SelfType step(const String &constant) {
-    if (valid && it != end) {
-      if (*it == constant) {
-        return Step(it + 1, end, true);
+    if (valid) {
+      if (it != end) {
+        if (*it == constant) {
+          return Step(it + 1, end, true);
+        }
       }
     }
     return Step(it, end, false);
   }
 
   SelfType step(Token &capture) {
-    if (valid && it != end) {
-      capture = *it;
-      return Step(it + 1, end, true);
+    if (valid) {
+      if (it != end) {
+        capture = *it;
+        return Step(it + 1, end, true);
+      }
+    }
+    return Step(it, end, false);
+  }
+
+  SelfType step(Token &token, const Either &e) {
+    if (valid) {
+      if (it != end) {
+        if (e.match(*it)) {
+          token = *it;
+          return Step(it + 1, end, true);
+        }
+      }
+    }
+    return Step(it, end, false);
+  }
+
+  SelfType step(Token &token, const Pattern &p) {
+    if (valid) {
+      if (it != end) {
+        if (p.match(*it)) {
+          token = *it;
+          return Step(it + 1, end, true);
+        }
+      }
     }
     return Step(it, end, false);
   }

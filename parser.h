@@ -10,7 +10,11 @@ class B {};
 class S : public virtual B {};
 class A : virtual public B {};
 
-namespace {
+namespace match {
+Pattern TypeName();
+}
+namespace ast {
+
 class ClassParser {
 public:
   template <typename Iterator>
@@ -18,20 +22,32 @@ public:
                                     std::vector<InheritanceAST> &inherits) {
     auto it = step.it;
 
-    std::vector<Token> incap;
-    auto scope = match::Either("public", "private", "protected");
-    auto in_step = step.combination(incap, scope, String("virtual"));
+    Token scope;
+    Token virt;
+    Token from;
+    auto result =
+        match::start(it, step.end)                                        //
+            .step(":")                                                    //
+            .step(scope, match::Either("public", "private", "protected")) //
+            .step(virt, "virtual")                                        //
+            .step(from, match::TypeName());
 
-    if (!in_step) {
-      incap.emplace_back("public", 0, 0); // TODO fix support for infered Token
-      it = in_step.it;
-    }
-
-    Token type;
-    match::Step<Iterator> result = match::start(it, step.end).step(type);
-    if (result) {
-      inherits.emplace_back(/*TODO*/ Incapsulation::PUBLIC, TypeName(type));
-    }
+    // std::vector<Token> incap;
+    // auto scope = ;
+    // auto in_step = step.combination(incap, scope, "virtual");
+    //
+    // // if (!in_step) {
+    // //   incap.emplace_back("public", 0, 0); // TODO fix support for infered
+    // //   Token
+    // //   it = in_step.it;
+    // // }
+    //
+    // Token type;
+    // match::Step<Iterator> result = match::start(it, step.end).step(type);
+    // if (result) {
+    //   inherits.emplace_back(#<{(|TODO|)}># Incapsulation::PUBLIC,
+    //   TypeName(type));
+    // }
 
     return result;
   }
@@ -122,7 +138,6 @@ template <typename Iterator>
 bool is_function_declaration(Iterator it, Iterator end) {
   return false;
 }
-} // namesapce anon
 
 class Parser {
 public:
@@ -131,5 +146,6 @@ public:
 
   FileAST parse(const std::vector<Token> &);
 };
+}
 
 #endif

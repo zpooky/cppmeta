@@ -3,6 +3,7 @@
 
 #include "entities.h"
 #include <vector>
+namespace ast {
 
 enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
 struct TypeName {
@@ -77,5 +78,7 @@ struct FileAST {
     m_classes.push_back(ast);
   }
 };
+
+}
 
 #endif

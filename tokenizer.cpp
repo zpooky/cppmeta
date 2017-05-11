@@ -65,9 +65,9 @@ ITokenizer *BaseTokenizer::parse(LineMeta &line, TokenResult &result) {
       token.push_back(line.pop());
       result.push_back(token);
 
-    } else if (is_token(line, {'=', ',', ';', '(', ')', '{', '}',  '<',
-                               '>', '[', ']', '.', '&', '~', '!',  '|',
-                               '^', '%', '-', '+', '#', ':', '\\', '/'})) {
+    } else if (is_token(line, {'=', ',', ';', '(', ')', '{',  '}', '<', '*',
+                               '>', '[', ']', '.', '&', '~',  '!', '|', '^',
+                               '%', '-', '+', '#', ':', '\\', '/'})) {
       result.push_back(token);
 
       token.push_back(line.pop());
@@ -179,11 +179,12 @@ void do_parse(LineMeta &line, TokenResult &result, char c) {
     while (!line.is_empty()) {
       char datum = line.pop();
       if (datum == c) {
-        if (!token.empty() && token.back() != '\\') {
-          result.push_back(token);
-
-          // push_back('"')
+        if (!token.empty() && token.back() == '\\') {
           token.push_back(datum);
+        } else {
+          result.push_back(token);
+          token.push_back(datum);
+          break;
         }
       } else {
         token.push_back(datum);

@@ -11,12 +11,13 @@ int main() {
     Tokenizer t(f);
     auto tokens = t.tokenize();
 
+    // std::cout << "\n\n####" << f.name.c_str() << "\n\n";
     // for (const auto &token : tokens) {
     //   std::cout << token.to_string() << "\n";
     // }
 
-    Parser parser;
-    FileAST ast = parser.parse(tokens);
+    ast::Parser parser;
+    ast::FileAST ast = parser.parse(tokens);
   }
   return 0;
 }
