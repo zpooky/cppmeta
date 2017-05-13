@@ -46,6 +46,10 @@ public:
   BasicString(const data_type *str) : BasicString(str, strlen(str)) {
   }
 
+  BasicString(const std::basic_string<data_type> &str)
+      : BasicString(str.data(), str.size()) {
+  }
+
   ~BasicString() {
     if (m_str) {
       Allocator a;
@@ -147,27 +151,28 @@ public:
     m_str[m_index++] = d;
   }
 
-  void append(const data_type *arr, size_t p_length) {
+   SelfType& append(const data_type *arr, size_t p_length) {
     require(p_length);
     std::copy(arr, arr + p_length, m_str + m_index);
     m_index += p_length;
+    return *this;
   }
 
   template <size_t N>
-  void append(const data_type (&str)[N]) {
-    append(str, N);
+  SelfType& append(const data_type (&str)[N]) {
+    return append(str, N);
   }
 
-  void append(const BasicString &str) {
-    append(str.m_str, str.m_index);
+  SelfType &append(const SelfType &str) {
+    return append(str.m_str, str.m_index);
   }
 
-  void append(const data_type *str) {
-    append(str, strlen(str));
+  SelfType& append(const data_type *str) {
+    return append(str, strlen(str));
   }
 
-  void append(const std::basic_string<data_type> &str) {
-    append(str.data(), str.size());
+  SelfType& append(const std::basic_string<data_type> &str) {
+    return append(str.data(), str.size());
   }
 
   SelfType substr(size_t start, size_t end) const {

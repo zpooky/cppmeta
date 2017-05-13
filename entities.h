@@ -2,6 +2,7 @@
 #define SP_CPP_META_ENTITIES_H
 
 #include "String.h"
+#include "yaml.h"
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -40,6 +41,13 @@ struct Column {
     result.append("e:");
     result.append(std::to_string(end));
     result.append("]");
+    return result;
+  }
+
+  auto to_yaml() const {
+    yaml::yaml result;
+    result.push_back("begin", String(std::to_string(begin)));
+    result.push_back("end", String(std::to_string(end)));
     return result;
   }
 };
@@ -85,6 +93,13 @@ struct Location {
     result.append("col:");
     result.append(column.to_string());
     result.append("]");
+    return result;
+  }
+
+  auto to_yaml() const {
+    yaml::yaml result;
+    result.push_back("line", String(std::to_string(line)));
+    result.push_back("column", column);
     return result;
   }
 };
@@ -140,6 +155,13 @@ struct Token {
     result.append("loc:");
     result.append(location.to_string());
     result.append("]");
+    return result;
+  }
+
+  auto to_yaml() const {
+    yaml::yaml result;
+    result.push_back("token", token);
+    result.push_back("location", location);
     return result;
   }
 };

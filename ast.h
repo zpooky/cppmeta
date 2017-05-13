@@ -3,9 +3,11 @@
 
 #include "entities.h"
 #include <vector>
+#include "yaml.h"
+
 namespace ast {
 
-enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
+// enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
 struct TypeName {
   Token name;
   TypeName(Token p_name) : name(p_name) {
@@ -33,10 +35,12 @@ struct TypedefAST {};
 struct UsingAST {};
 
 struct InheritanceAST {
-  Incapsulation incap;
+  Token scope;
+  Token virt;
   TypeName name;
-  InheritanceAST(Incapsulation p_cap, TypeName p_name)
-      : incap(p_cap), name(p_name) {
+
+  InheritanceAST(Token p_scope, Token p_virt, TypeName p_name)
+      : scope(p_scope), virt(p_virt), name(p_name) {
   }
 };
 
@@ -69,16 +73,21 @@ struct ClassAST {
       : name(p_name), inherits(p_inherits), dtorAST(), publicAST(),
         privateAST(), protectedAST() {
   }
-};
 
-struct FileAST {
-  std::vector<ClassAST> m_classes;
-
-  void push_back(const ClassAST &ast) {
-    m_classes.push_back(ast);
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("class", name);
+    return result;
   }
 };
 
+struct FileAST {
+  std::vector<ClassAST> classes;
+
+  void push_back(const ClassAST &ast) {
+    classes.push_back(ast);
+  }
+};
 }
 
 #endif

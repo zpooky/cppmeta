@@ -9,7 +9,7 @@
 namespace match {
 
 struct Pattern {
-  bool match(const Token &match) const {
+  bool match(const Token &) const {
     // TODO
     return true;
   }
@@ -130,34 +130,49 @@ public:
   // template <typename... Term>
   // SelfType combination(Token &, const Either &, const Term &...);
 
-private:
-  SelfType combination(Token &match) {
-    return SelfType(it, end, valid);
-  }
-
-public:
-  template <typename... Term>
-  SelfType combination(std::vector<Token> &match, const String &c,
-                       const Term &... terms) {
-    return SelfType(it, end, valid);
-  }
-
-  template <typename... Term>
-  SelfType combination(std::vector<Token> &match, const Either &e,
-                       const Term &... terms) {
-    return SelfType(it, end, valid);
+// private:
+//   SelfType combination(Token &match) {
+//     return SelfType(it, end, valid);
+//   }
+//
+// public:
+//   template <typename... Term>
+//   SelfType combination(std::vector<Token> &match, const String &c,
+//                        const Term &... terms) {
+//     return SelfType(it, end, valid);
+//   }
+//
+//   template <typename... Term>
+//   SelfType combination(std::vector<Token> &match, const Either &e,
+//                        const Term &... terms) {
+//     return SelfType(it, end, valid);
+//   }
+//
+  template <typename Function>
+  SelfType option(Function f){
+    if(valid){
+      Step<Iterator> current = f(*this);
+      if(current.valid){
+        return current;
+      }
+    }
+    return *this;
   }
 
   template <typename Function>
   SelfType repeat(Function f, const String &separator) {
     SelfType current = *this;
   start:
-    SelfType result = f(current);
-    if (result) {
-      current = result;
-      if (current.it != current.end && *current.it == separator) {
-        current = SelfType(current.it + 1, current.end, true);
-        goto start;
+    if (current.valid) {
+      SelfType result = f(current);
+      if (result) {
+        current = result;
+        if (current.it != current.end) {
+          if (*current.it == separator) {
+            current = SelfType(current.it + 1, current.end, true);
+            goto start;
+          }
+        }
       }
     }
     return current;

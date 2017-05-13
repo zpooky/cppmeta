@@ -2,8 +2,8 @@
 #define SP_CPP_META_PARSER_H
 
 #include "ast.h"
-#include "astenteties.h"
 #include "entities.h"
+#include "matcher.h"
 #include <vector>
 
 class B {};
@@ -22,50 +22,39 @@ public:
                                     std::vector<InheritanceAST> &inherits) {
     auto it = step.it;
 
-    Token scope;
-    Token virt;
-    Token from;
-    auto result =
-        match::start(it, step.end)                                        //
-            .step(":")                                                    //
-            .step(scope, match::Either("public", "private", "protected")) //
-            .step(virt, "virtual")                                        //
-            .step(from, match::TypeName());
+    return match::start(it, step.end) //
+        .step(":")                    //
+        .repeat(
+            [&](auto &start) { //
+              auto scopes = match::Either("public", "private", "protected");
+              Token scope;
+              Token virt;
+              Token from;
+              auto r = start
+                           .step(scope, scopes)   //
+                           .step(virt, "virtual") //
+                           .step(from, match::TypeName());
 
-    // std::vector<Token> incap;
-    // auto scope = ;
-    // auto in_step = step.combination(incap, scope, "virtual");
-    //
-    // // if (!in_step) {
-    // //   incap.emplace_back("public", 0, 0); // TODO fix support for infered
-    // //   Token
-    // //   it = in_step.it;
-    // // }
-    //
-    // Token type;
-    // match::Step<Iterator> result = match::start(it, step.end).step(type);
-    // if (result) {
-    //   inherits.emplace_back(#<{(|TODO|)}># Incapsulation::PUBLIC,
-    //   TypeName(type));
-    // }
-
-    return result;
+              if (r.valid) {
+                inherits.emplace_back(scope, virt, TypeName(from));
+              }
+              return r;
+            },
+            ",");
   }
 
   template <typename Iterator>
   ClassAST parse(Iterator begin, Iterator end) {
     Token name;
     std::vector<InheritanceAST> inherits;
-    auto start = match::start(begin, end) //
-                     .step("class")       //
-                     .step(name)          //
-                     .option(":")
-                     .repeat(
-                         [&](match::Step<Iterator> &step) { //
-                           return inheritance(step, inherits);
-                         },
-                         ",") //
+    auto start = match::start(begin, end)                            //
+                     .step("class")                                  //
+                     .step(name, match::TypeName())                  //
+                     .option([&](match::Step<Iterator> &o) -> match::Step<Iterator> { //
+                       return inheritance(o, inherits);
+                     }) //
                      .step("{");
+
     Iterator it = start.it;
 
     ClassAST class_ast(name, inherits);
