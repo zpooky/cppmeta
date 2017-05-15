@@ -94,6 +94,12 @@ public:
     return m_str[idx];
   }
 
+  SelfType operator+(const SelfType &o) const {
+    SelfType s(*this);//prealloc o+this
+    s.append(o);
+    return s;
+  }
+
   void resize(size_t sz) {
     size_t realloc = std::max(sz, m_index);
     if (realloc != sz) {
@@ -151,15 +157,20 @@ public:
     m_str[m_index++] = d;
   }
 
-   SelfType& append(const data_type *arr, size_t p_length) {
+  SelfType &append(const data_type *arr, size_t p_length) {
     require(p_length);
+    for (size_t i(0); i < p_length; ++i) {
+      if (arr[i] == data_type(0)) {
+        assert(false);
+      }
+    }
     std::copy(arr, arr + p_length, m_str + m_index);
     m_index += p_length;
     return *this;
   }
 
   template <size_t N>
-  SelfType& append(const data_type (&str)[N]) {
+  SelfType &append(const data_type (&str)[N]) {
     return append(str, N);
   }
 
@@ -167,11 +178,11 @@ public:
     return append(str.m_str, str.m_index);
   }
 
-  SelfType& append(const data_type *str) {
+  SelfType &append(const data_type *str) {
     return append(str, strlen(str));
   }
 
-  SelfType& append(const std::basic_string<data_type> &str) {
+  SelfType &append(const std::basic_string<data_type> &str) {
     return append(str.data(), str.size());
   }
 
