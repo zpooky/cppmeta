@@ -14,11 +14,12 @@ using Value = String;
 class entry;
 class yaml;
 class Map;
+struct Types;
 
 /*List*/
 class List {
 private:
-  std::list<entry> m_list;
+  std::list<Types> m_list;
 
 public:
   List(const std::vector<Value> &);
@@ -27,7 +28,7 @@ public:
   template <typename T>
   List(const std::vector<T> &collection) : m_list() {
     for (const auto &current : collection) {
-      // m_list.emplace_back(current.to_yaml());
+      m_list.emplace_back(current.to_yaml());
     }
   }
 
@@ -59,30 +60,47 @@ void yaml::push_back(const Key &key, const T &data) {
 }
 
 /*entry*/
-enum class EType { LIST, MAP, SCALAR };
-class entry {
-private:
-  Key m_key;
+enum class EType { LIST, MAP, KV, SCALAR };
+struct Types {
   union {
     List m_list;
     yaml m_map;
     Value m_scalar;
   };
-  EType m_type;
+  EType type;
+
+  Types(const Types &);
+  Types(Types &&);
+
+  Types(List &&);
+  Types(const List &);
+
+  Types(Value &&);
+  Types(const Value &);
+
+  Types(const yaml &);
+
+  ~Types();
+
+  String to_string(const String &) const;
+};
+
+class entry {
+private:
+  Types m_type;
+  Key m_key;
 
 public:
-  entry(const Key &, List &&);
-  entry(const Key &, const List &);
-  entry(const Key &, Value &&);
-  entry(const Key &, const Value &);
-  entry(const Key &, const yaml &);
+  template <typename T>
+  entry(const Key &key, T &&value)
+      : m_key(key), m_type(std::forward<T>(value)) {
+  }
 
   entry(entry &&);
   entry(const entry &);
 
   ~entry();
   String to_string(const String &) const;
-  EType type() const;
 
 private:
 };
