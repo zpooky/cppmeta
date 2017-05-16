@@ -25,6 +25,7 @@ int main() {
     ast::Parser parser;
     ast::FileAST ast = parser.parse(tokens);
     for (auto &c : ast.classes) {
+      // std::cout << yaml::List(c.inherits).to_string("") << "\n";
       auto current = c.to_yaml();
       std::cout << current.to_string();
     }

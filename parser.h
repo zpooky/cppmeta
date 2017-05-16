@@ -19,7 +19,7 @@ class ClassParser {
 public:
   template <typename Iterator>
   match::Step<Iterator> inheritance(match::Step<Iterator> &step,
-                                    std::vector<InheritanceAST> &inherits) {
+                                    std::vector<InheritanceAST> &result) {
     auto it = step.it;
 
     return match::start(it, step.end) //
@@ -36,7 +36,7 @@ public:
                            .step(from, match::TypeName());
 
               if (r.valid) {
-                inherits.emplace_back(scope, virt, TypeName(from));
+                result.emplace_back(scope, virt, TypeName(from));
               }
               return r;
             },
@@ -47,17 +47,18 @@ public:
   ClassAST parse(Iterator begin, Iterator end) {
     Token name;
     std::vector<InheritanceAST> inherits;
-    auto start = match::start(begin, end)                            //
-                     .step("class")                                  //
-                     .step(name, match::TypeName())                  //
-                     .option([&](match::Step<Iterator> &o) -> match::Step<Iterator> { //
-                       return inheritance(o, inherits);
-                     }) //
-                     .step("{");
+    auto start =
+        match::start(begin, end)                                             //
+            .step("class")                                                   //
+            .step(name, match::TypeName())                                   //
+            .option([&](match::Step<Iterator> &o) -> match::Step<Iterator> { //
+              return inheritance(o, inherits);
+            }) //
+            .step("{");
 
     Iterator it = start.it;
 
-    ClassAST class_ast(name, inherits);
+    ClassAST result(name, inherits);
     if (start) {
       Token scope;
       auto scopeStart = match::start(it, end).step(scope).step(":");
@@ -78,7 +79,7 @@ public:
      * };
      */
     // ClassAST ast;
-    return class_ast;
+    return result;
   }
 };
 
