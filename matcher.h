@@ -29,13 +29,13 @@ struct Either {
   }
 };
 
-template <typename... Tail>
-Either either(const Tail &... tail);
-
-template <typename... Tail>
-Either either(Tail... tail) {
-  return Either(std::forward<String>(tail)...);
-}
+// template <typename... Tail>
+// Either either(const Tail &... tail);
+//
+// template <typename... Tail>
+// Either either(Tail... tail) {
+//   return Either(std::forward<String>(tail)...);
+// }
 
 template <typename Iterator>
 struct Step {
@@ -202,17 +202,25 @@ public:
   }
 };
 
-// Step<Iterator> either(Token&);
-// Step<Iterator> either(Token&){
-// }
-
-// template<typename Constant,typename ...Constants>
-// Step<Iterator> either(Token&,
-
 template <typename Iterator>
 Step<Iterator> start(Iterator begin, Iterator end) {
   return Step<Iterator>(begin, end);
 }
+
+template <typename Iterator, typename Function, typename Function2>
+Step<Iterator> either(Step<Iterator> s, Function first, Function2 second) {
+  if (s.valid) {
+    Step<Iterator> r = first(s);
+    if (r) {
+      return r;
+    }
+    Step<Iterator> r1 = second(s);
+    if (r1) {
+      return r1;
+    }
+  }
+  return s;
 }
+} // namespace match
 
 #endif

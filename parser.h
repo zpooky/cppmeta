@@ -22,21 +22,39 @@ public:
     return match::start(it, step.end) //
         .step(":")                    //
         .repeat(
-            [&](auto &start) { //
+            [&](match::Step<Iterator> start) { //
               auto scopes = match::Either("public", "private", "protected");
-              Token scope;
-              Token virt;
-              Token from;
-              // match::unordered c w
-              auto r = start
-                           .option(scope, scopes)   //
-                           .option(virt, "virtual") //
-                           .step(from, match::TypeName());
+              auto virtuals = "virtual";
+              return match::either(
+                  start,
+                  [&](match::Step<Iterator> it) {
+                    Token scope;
+                    Token virt;
+                    Token from;
+                    match::Step<Iterator> r =
+                        it.option(scope, scopes)    //
+                            .option(virt, virtuals) //
+                            .step(from, match::TypeName());
 
-              if (r.valid) {
-                result.emplace_back(scope, virt, TypeName(from));
-              }
-              return r;
+                    if (r.valid) {
+                      result.emplace_back(scope, virt, TypeName(from));
+                    }
+                    return r;
+                  },
+                  [&](match::Step<Iterator> it) {
+                    Token scope;
+                    Token virt;
+                    Token from;
+                    match::Step<Iterator> r =
+                        it.option(virt, virtuals)  //
+                            .option(scope, scopes) //
+                            .step(from, match::TypeName());
+
+                    if (r.valid) {
+                      result.emplace_back(scope, virt, TypeName(from));
+                    }
+                    return r;
+                  });
             },
             ",");
   }
