@@ -6,13 +6,10 @@
 #include "matcher.h"
 #include <vector>
 
-class B {};
-class S : public virtual B {};
-class A : virtual public B {};
-
 namespace match {
 Pattern TypeName();
 }
+
 namespace ast {
 
 class ClassParser {
@@ -30,9 +27,10 @@ public:
               Token scope;
               Token virt;
               Token from;
+              // match::unordered c w
               auto r = start
-                           .step(scope, scopes)   //
-                           .step(virt, "virtual") //
+                           .option(scope, scopes)   //
+                           .option(virt, "virtual") //
                            .step(from, match::TypeName());
 
               if (r.valid) {

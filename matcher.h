@@ -9,10 +9,7 @@
 namespace match {
 
 struct Pattern {
-  bool match(const Token &) const {
-    // TODO
-    return true;
-  }
+  bool match(const Token &) const;
 };
 
 struct Either {
@@ -99,9 +96,27 @@ struct Step {
     return Step(it, end, false);
   }
 
-  SelfType option(const String &) {
-    // TODO
+  SelfType option(const String &constant) {
+    if (valid) {
+      if (it != end) {
+        if (*it == constant) {
+          return SelfType(it + 1, end, valid);
+        }
+      }
+    }
     return SelfType(it, end, valid);
+  }
+
+  SelfType option(Token &token, const Either &e) {
+    if (valid) {
+      if (it != end) {
+        if (e.match(*it)) {
+          token = *it;
+          return Step(it + 1, end, valid);
+        }
+      }
+    }
+    return Step(it, end, valid);
   }
 
 private:
@@ -130,29 +145,29 @@ public:
   // template <typename... Term>
   // SelfType combination(Token &, const Either &, const Term &...);
 
-// private:
-//   SelfType combination(Token &match) {
-//     return SelfType(it, end, valid);
-//   }
-//
-// public:
-//   template <typename... Term>
-//   SelfType combination(std::vector<Token> &match, const String &c,
-//                        const Term &... terms) {
-//     return SelfType(it, end, valid);
-//   }
-//
-//   template <typename... Term>
-//   SelfType combination(std::vector<Token> &match, const Either &e,
-//                        const Term &... terms) {
-//     return SelfType(it, end, valid);
-//   }
-//
+  // private:
+  //   SelfType combination(Token &match) {
+  //     return SelfType(it, end, valid);
+  //   }
+  //
+  // public:
+  //   template <typename... Term>
+  //   SelfType combination(std::vector<Token> &match, const String &c,
+  //                        const Term &... terms) {
+  //     return SelfType(it, end, valid);
+  //   }
+  //
+  //   template <typename... Term>
+  //   SelfType combination(std::vector<Token> &match, const Either &e,
+  //                        const Term &... terms) {
+  //     return SelfType(it, end, valid);
+  //   }
+  //
   template <typename Function>
-  SelfType option(Function f){
-    if(valid){
+  SelfType option(Function f) {
+    if (valid) {
       Step<Iterator> current = f(*this);
-      if(current.valid){
+      if (current.valid) {
         return current;
       }
     }
