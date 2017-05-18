@@ -1,3 +1,5 @@
+#include <string>
+
 class TestBase { //
 };
 
@@ -62,3 +64,6 @@ class TestSub16 {};
 
 template <typename T, typename B = int>
 class TestSub17 {};
+
+template<size_t s = 1>
+class TestSub18 {};

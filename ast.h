@@ -42,6 +42,15 @@ struct TypedefAST {};
 struct UsingAST {};
 /*TemplateAST*/
 struct TemplateAST {
+  // using {
+  struct {
+    Token type;
+    Token name;
+  } m_named;
+  struct {
+    Token name;
+  } m_template;
+  // };
 };
 /*InheritanceAST*/
 struct InheritanceAST {
@@ -87,6 +96,7 @@ struct ScopeAST {
 struct ClassAST {
   Token name;
   std::vector<InheritanceAST> inherits;
+  std::vector<TemplateAST> templates;
 
   DestructorAST dtorAST;
   /**/
@@ -94,9 +104,14 @@ struct ClassAST {
   ScopeAST privateAST;
   ScopeAST protectedAST;
 
-  ClassAST(const Token &p_name, const std::vector<InheritanceAST> p_inherits)
-      : name(p_name), inherits(p_inherits), dtorAST(), publicAST(),
-        privateAST(), protectedAST() {
+  ClassAST(const Token &p_name, const std::vector<InheritanceAST> &p_inherits,
+           const std::vector<TemplateAST> &p_templates)
+      : name(p_name),              //
+        inherits(p_inherits),      //
+        templates(p_templates),    //
+        dtorAST(),                 //
+        publicAST(), privateAST(), //
+        protectedAST() {
   }
 
   yaml::yaml to_yaml() const {

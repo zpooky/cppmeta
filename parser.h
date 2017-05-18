@@ -30,7 +30,8 @@ public:
                     Token virt;
                     Token from;
                     match::Step<Iterator> r =
-                        it.option(scope, scopes)    //
+                        it                          //
+                            .option(scope, scopes)  //
                             .option(virt, virtuals) //
                             .step(from, match::TypeName());
 
@@ -44,8 +45,9 @@ public:
                     Token virt;
                     Token from;
                     match::Step<Iterator> r =
-                        it.option(virt, virtuals)  //
-                            .option(scope, scopes) //
+                        it                          //
+                            .option(virt, virtuals) //
+                            .option(scope, scopes)  //
                             .step(from, match::TypeName());
 
                     if (r.valid) {
@@ -58,8 +60,23 @@ public:
   }
 
   template <typename Iterator>
-  match::Step<Iterator> typenamed(match::Step<Iterator> step) {
-    return step;
+  match::Step<Iterator> typenamed(match::Step<Iterator> start) {
+    return match::either(
+        start,
+        [&](match::Step<Iterator> it) -> match::Step<Iterator> { //
+          Token t;
+          Token type;
+          return it                                        //
+              .step(t, match::Either("class", "typename")) //
+              .step(type, match::TypeName());
+        },
+        [&](match::Step<Iterator> it) -> match::Step<Iterator> { //
+          Token type;
+          Token name;
+          return it                          //
+              .step(type, match::TypeName()) //
+              .step(name, match::TypeName());
+        });
   }
 
   template <typename Iterator>
@@ -95,10 +112,13 @@ public:
 
     Iterator it = start.it;
 
-    ClassAST result(name, inherits);
+    ClassAST result(name, inherits, templates);
     if (start) {
       Token scope;
-      auto scopeStart = match::start(it, end).step(scope).step(":");
+      match::Either scopes_match("public", "private", "protected");
+      auto scopeStart = start                          //
+                            .step(scope, scopes_match) //
+                            .step(":");
       // it = scopeStart.it;
       if (!scopeStart) {
         // scope = Token("private");
@@ -109,13 +129,6 @@ public:
       // class_ast.push_back(scope, scope_ast);
     }
     it = match::start(it, end).step("}").step(";");
-    /*
-     * typedef class {
-     * } name;
-     * class name {
-     * };
-     */
-    // ClassAST ast;
     return result;
   }
 };
