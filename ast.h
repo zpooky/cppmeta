@@ -40,7 +40,9 @@ struct TypedefAST {};
 
 /*UsingAST*/
 struct UsingAST {};
-
+/*TemplateAST*/
+struct TemplateAST {
+};
 /*InheritanceAST*/
 struct InheritanceAST {
   Token scope;

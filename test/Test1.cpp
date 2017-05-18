@@ -1,4 +1,3 @@
-
 class TestBase { //
 };
 
@@ -45,3 +44,21 @@ class TestSub10 : virtual TestBase, TestBase2 {
 };
 
 class TestSub11 : TestBase, TestBase2 {};
+
+class TestSub12 /*:*/ /*TestBase,*/ // TestBase2
+{};
+
+template <typename T>
+class TestSub13 {};
+
+template <typename>
+class TestSub14 {};
+
+template <typename T, typename B>
+class TestSub15 {};
+
+template <typename T = int>
+class TestSub16 {};
+
+template <typename T, typename B = int>
+class TestSub17 {};

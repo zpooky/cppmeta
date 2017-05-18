@@ -15,12 +15,10 @@ namespace ast {
 class ClassParser {
 public:
   template <typename Iterator>
-  match::Step<Iterator> inheritance(match::Step<Iterator> &step,
+  match::Step<Iterator> inheritance(match::Step<Iterator> step,
                                     std::vector<InheritanceAST> &result) {
-    auto it = step.it;
-
-    return match::start(it, step.end) //
-        .step(":")                    //
+    return step    //
+        .step(":") //
         .repeat(
             [&](match::Step<Iterator> start) { //
               auto scopes = match::Either("public", "private", "protected");
@@ -60,11 +58,34 @@ public:
   }
 
   template <typename Iterator>
+  match::Step<Iterator> typenamed(match::Step<Iterator> step) {
+    return step;
+  }
+
+  template <typename Iterator>
+  match::Step<Iterator> templated(match::Step<Iterator> step,
+                                  std::vector<TemplateAST> &result) {
+    return step           //
+        .step("template") //
+        .step("<")        //
+        .repeat(
+            [&](match::Step<Iterator> start) -> match::Step<Iterator> { //
+              return typenamed(start);
+            },
+            ",") //
+        .step(">");
+  }
+
+  template <typename Iterator>
   ClassAST parse(Iterator begin, Iterator end) {
     Token name;
     std::vector<InheritanceAST> inherits;
+    std::vector<TemplateAST> templates;
     auto start =
         match::start(begin, end)                                             //
+            .option([&](match::Step<Iterator> &o) -> match::Step<Iterator> { //
+              return templated(o, templates);
+            })
             .step("class")                                                   //
             .step(name, match::TypeName())                                   //
             .option([&](match::Step<Iterator> &o) -> match::Step<Iterator> { //
