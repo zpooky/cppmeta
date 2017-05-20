@@ -96,6 +96,16 @@ struct Step {
     return Step(it, end, false);
   }
 
+  template <typename Out, typename Function>
+  SelfType step(Out &out, Function f) {
+    if (valid) {
+      if (it != end) {
+        return f(out, *this);
+      }
+    }
+    return SelfType(it, end, valid);
+  }
+
   SelfType option(const String &constant) {
     if (valid) {
       if (it != end) {

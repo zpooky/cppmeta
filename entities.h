@@ -111,6 +111,9 @@ struct Token {
   Token() : token(), location() {
   }
 
+  Token(const String &p_token) : Token(p_token, Location()) {
+  }
+
   Token(const String &p_token, const Location &p_loc)
       : token(p_token), location(p_loc) {
   }

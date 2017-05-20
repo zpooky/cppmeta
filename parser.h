@@ -12,8 +12,23 @@ Pattern TypeName();
 
 namespace ast {
 
+template <typename Iterator>
+struct TypeIdentifierParser {
+  match::Step<Iterator> operator()(TypeIdentifier &, match::Step<Iterator> it) {
+    return it;
+  }
+};
+
 class ClassParser {
 public:
+  // template <typename Iterator>
+  // auto typeIdentifier() {
+  //   return [](TypeIdentifier &,
+  //             match::Step<Iterator> start) -> match::Step<Iterator> {
+  //     return start;
+  //   };
+  // }
+
   template <typename Iterator>
   match::Step<Iterator> inheritance(match::Step<Iterator> step,
                                     std::vector<InheritanceAST> &result) {
@@ -28,39 +43,39 @@ public:
                   [&](match::Step<Iterator> it) {
                     Token scope;
                     Token virt;
-                    Token from;
+                    TypeIdentifier from;
                     match::Step<Iterator> r =
                         it                          //
                             .option(scope, scopes)  //
                             .option(virt, virtuals) //
-                            .step(from, match::TypeName());
-
+                            .step(from, TypeIdentifierParser<Iterator>());
                     if (r.valid) {
-                      result.emplace_back(scope, virt, TypeName(from));
+                      result.emplace_back(scope, virt, from);
                     }
                     return r;
                   },
                   [&](match::Step<Iterator> it) {
                     Token scope;
                     Token virt;
-                    Token from;
+                    TypeIdentifier from;
                     match::Step<Iterator> r =
                         it                          //
                             .option(virt, virtuals) //
                             .option(scope, scopes)  //
-                            .step(from, match::TypeName());
+                            .step(from,TypeIdentifierParser<Iterator>());
 
                     if (r.valid) {
-                      result.emplace_back(scope, virt, TypeName(from));
+                      result.emplace_back(scope, virt, from);
                     }
                     return r;
                   });
             },
             ",");
-  }
+  } // inheritance
 
   template <typename Iterator>
-  match::Step<Iterator> typenamed(match::Step<Iterator> start) {
+  match::Step<Iterator> typenamed(match::Step<Iterator> start,
+                                  std::vector<TemplateParamterAST> &templates) {
     return match::either(
         start,
         [&](match::Step<Iterator> it) -> match::Step<Iterator> { //
@@ -77,40 +92,39 @@ public:
               .step(type, match::TypeName()) //
               .step(name, match::TypeName());
         });
-  }
+  } // typenamed
 
   template <typename Iterator>
   match::Step<Iterator> templated(match::Step<Iterator> step,
-                                  std::vector<TemplateAST> &result) {
+                                  std::vector<TemplateParamterAST> &result) {
     return step           //
         .step("template") //
         .step("<")        //
         .repeat(
             [&](match::Step<Iterator> start) -> match::Step<Iterator> { //
-              return typenamed(start);
+              return typenamed(start, result);
             },
             ",") //
         .step(">");
-  }
+  } // templated
 
   template <typename Iterator>
   ClassAST parse(Iterator begin, Iterator end) {
+    Token typeQualifier;
     Token name;
     std::vector<InheritanceAST> inherits;
-    std::vector<TemplateAST> templates;
+    std::vector<TemplateParamterAST> templates;
     auto start =
         match::start(begin, end)                                             //
             .option([&](match::Step<Iterator> &o) -> match::Step<Iterator> { //
               return templated(o, templates);
             })
-            .step("class")                                                   //
+            .step(typeQualifier, match::Either("class", "struct"))           //
             .step(name, match::TypeName())                                   //
             .option([&](match::Step<Iterator> &o) -> match::Step<Iterator> { //
               return inheritance(o, inherits);
             }) //
             .step("{");
-
-    Iterator it = start.it;
 
     ClassAST result(name, inherits, templates);
     if (start) {
@@ -119,7 +133,6 @@ public:
       auto scopeStart = start                          //
                             .step(scope, scopes_match) //
                             .step(":");
-      // it = scopeStart.it;
       if (!scopeStart) {
         // scope = Token("private");
       }
@@ -128,10 +141,10 @@ public:
       // ScopeAST scope_ast = scope.parse(it, end);
       // class_ast.push_back(scope, scope_ast);
     }
-    it = match::start(it, end).step("}").step(";");
+    start.step("}").step(";");
     return result;
   }
-};
+}; // class Parser
 
 template <typename It>
 bool is_tokens(It, It);

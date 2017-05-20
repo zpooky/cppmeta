@@ -41,24 +41,72 @@ struct TypedefAST {};
 /*UsingAST*/
 struct UsingAST {};
 /*TemplateAST*/
-struct TemplateAST {
-  // using {
-  struct {
-    Token type;
-    Token name;
-  } m_named;
-  struct {
-    Token name;
-  } m_template;
-  // };
+struct Typed {
+  Token type;
+  Token name;
+
+  Typed() : type(), name() {
+  }
+
+  Typed(const Token &p_type, const Token &p_name) //
+      : type(p_type),
+        name(p_name) {
+  }
 };
+
+struct Named {
+  Token name;
+
+  Named() : name() {
+  }
+
+  Named(const Token &p_name) //
+      : name(p_name) {
+  }
+};
+enum class Type { TYPED, NAMED };
+struct TemplateParamterAST {
+  Typed typed;
+  Named named;
+  std::vector<TemplateParamterAST> m_templates;
+  Type type;
+
+  TemplateParamterAST(const Token &p_type, const Token &p_name) //
+      : typed{p_type, p_name},
+        named(),
+        m_templates{},
+        type(Type::TYPED) {
+  }
+
+  TemplateParamterAST(const Token &p_name) //
+      : typed(),
+        named{p_name},
+        m_templates(),
+        type(Type::NAMED) {
+  }
+};
+
+/*TypeIdentifier*/
+struct TypeIdentifier {
+  Token name;
+  std::vector<TemplateParamterAST> templates;
+
+  TypeIdentifier() //
+      : TypeIdentifier(Token(), {}) {
+  }
+
+  TypeIdentifier(const Token &n, const std::vector<TemplateParamterAST> &t)
+      : name(n), templates(t) {
+  }
+};
+
 /*InheritanceAST*/
 struct InheritanceAST {
   Token scope;
   Token virt;
-  TypeName name;
+  TypeIdentifier name;
 
-  InheritanceAST(Token p_scope, Token p_virt, TypeName p_name)
+  InheritanceAST(Token p_scope, Token p_virt, const TypeIdentifier &p_name)
       : scope(p_scope), virt(p_virt), name(p_name) {
   }
 
@@ -94,9 +142,9 @@ struct ScopeAST {
 
 /*ClassAST*/
 struct ClassAST {
-  Token name;
+  TypeName name;
   std::vector<InheritanceAST> inherits;
-  std::vector<TemplateAST> templates;
+  std::vector<TemplateParamterAST> templates;
 
   DestructorAST dtorAST;
   /**/
@@ -104,8 +152,9 @@ struct ClassAST {
   ScopeAST privateAST;
   ScopeAST protectedAST;
 
-  ClassAST(const Token &p_name, const std::vector<InheritanceAST> &p_inherits,
-           const std::vector<TemplateAST> &p_templates)
+  ClassAST(const TypeName &p_name,
+           const std::vector<InheritanceAST> &p_inherits,
+           const std::vector<TemplateParamterAST> &p_templates)
       : name(p_name),              //
         inherits(p_inherits),      //
         templates(p_templates),    //
@@ -117,7 +166,7 @@ struct ClassAST {
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     yaml::yaml dd;
-    dd.push_back("name", name);
+    dd.push_back("name", name.name);
     dd.push_back("dtor", dtorAST);
     dd.push_back("public", publicAST);
     dd.push_back("private", privateAST);
@@ -136,6 +185,21 @@ struct FileAST {
     classes.push_back(ast);
   }
 };
+}
+
+namespace ref {
+
+}
+
+namespace decl {
+  struct ClassDeclaration {
+    /* template<typename T>
+     * class Name;
+     */
+  };
+}
+
+namespace def {
 }
 
 #endif
