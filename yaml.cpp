@@ -25,13 +25,18 @@ String List::to_string(const String &prefix) const {
   return result;
 }
 
+bool List::is_empty() const {
+  return m_list.empty();
+}
 /*yaml*/
 /*public*/
 yaml::yaml() : m_stack() {
 }
 
 void yaml::push_back(const Key &key, const yaml &value) {
-  m_stack.emplace_back(key, value);
+  if (!value.is_empty()) {
+    m_stack.emplace_back(key, value);
+  }
 }
 
 void yaml::push_back(const Key &key, const Value &value) {
@@ -39,7 +44,13 @@ void yaml::push_back(const Key &key, const Value &value) {
 }
 
 void yaml::push_back(const Key &key, const List &value) {
-  m_stack.emplace_back(key, value);
+  if (!value.is_empty()) {
+    m_stack.emplace_back(key, value);
+  }
+}
+
+bool yaml::is_empty() const {
+  return m_stack.empty();
 }
 
 String yaml::to_string(const String &prefix) const {
@@ -104,7 +115,7 @@ Types::~Types() {
 }
 
 String Types::to_string(const String &prefix) const {
-  //TODO duplicate
+  // TODO duplicate
   String result(prefix);
   if (type == EType::SCALAR) {
     result.append(m_scalar);

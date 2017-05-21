@@ -1,7 +1,7 @@
 #ifndef SP_META_CPP_TOKEN_RESULT_H
 #define SP_META_CPP_TOKEN_RESULT_H
 
-#include "entities.h"
+#include "tokens.h"
 #include "LineMeta.h"
 #include <vector>
 
@@ -16,7 +16,7 @@ struct TokenResult {
   }
 
   void push_back(String &token) {
-    if (!token.empty()) {
+    if (!token.is_empty()) {
       location.column.end = token.length();
       result.emplace_back(token, location);
       token.clear();

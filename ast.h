@@ -1,7 +1,7 @@
 #ifndef SP_CPP_META_AST_H
 #define SP_CPP_META_AST_H
 
-#include "entities.h"
+#include "tokens.h"
 #include "yaml.h"
 #include <vector>
 
@@ -10,6 +10,10 @@ namespace ast {
 // enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
 struct TypeName {
   Token name;
+
+  TypeName() : name(){
+  }
+
   TypeName(Token p_name) : name(p_name) {
   }
 };
@@ -152,6 +156,12 @@ struct ClassAST {
   ScopeAST privateAST;
   ScopeAST protectedAST;
 
+  ClassAST()
+      : name(), inherits{}, templates{}, dtorAST(), //
+        publicAST(), privateAST(),                  //
+        protectedAST() {
+  }
+
   ClassAST(const TypeName &p_name,
            const std::vector<InheritanceAST> &p_inherits,
            const std::vector<TemplateParamterAST> &p_templates)
@@ -185,21 +195,18 @@ struct FileAST {
     classes.push_back(ast);
   }
 };
-}
+} // namespace ast
 
-namespace ref {
-
-}
+namespace ref {}
 
 namespace decl {
-  struct ClassDeclaration {
-    /* template<typename T>
-     * class Name;
-     */
-  };
+struct Class {
+  /* template<typename T>
+   * class Name;
+   */
+};
 }
 
-namespace def {
-}
+namespace def {}
 
 #endif

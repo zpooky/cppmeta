@@ -28,9 +28,14 @@ public:
   template <typename T>
   List(const std::vector<T> &collection) : m_list() {
     for (const auto &current : collection) {
-      m_list.emplace_back(current.to_yaml());
+      auto y = current.to_yaml();
+      if (!y.is_empty()) {
+        m_list.emplace_back(std::move(y));
+      }
     }
   }
+
+  bool is_empty() const;
 
   String to_string(const String &) const;
 };
@@ -52,11 +57,16 @@ public:
   template <typename T>
   void push_back(const Key &, const T &);
   void push_back(const Key &, const std::string &) = delete;
+
+  bool is_empty() const;
 };
 
 template <typename T>
 void yaml::push_back(const Key &key, const T &data) {
-  push_back(key, data.to_yaml());
+  auto y = data.to_yaml();
+  if (!y.is_empty()) {
+    push_back(key, std::move(y));
+  }
 }
 
 /*entry*/

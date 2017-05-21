@@ -163,8 +163,10 @@ struct Token {
 
   auto to_yaml() const {
     yaml::yaml result;
-    result.push_back("token", token);
-    result.push_back("location", location);
+    if (!token.is_empty()) {
+      result.push_back("token", token);
+      result.push_back("location", location);
+    }
     return result;
   }
 };

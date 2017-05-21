@@ -179,7 +179,7 @@ void do_parse(LineMeta &line, TokenResult &result, char c) {
     while (!line.is_empty()) {
       char datum = line.pop();
       if (datum == c) {
-        if (!token.empty() && token.back() == '\\') {
+        if (!token.is_empty() && token.back() == '\\') {
           token.push_back(datum);
         } else {
           result.push_back(token);

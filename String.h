@@ -127,7 +127,7 @@ public:
     return m_index;
   }
 
-  bool empty() const {
+  bool is_empty() const {
     return m_index == 0;
   }
 

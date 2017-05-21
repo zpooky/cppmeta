@@ -1,48 +1,49 @@
 #include "parser.h"
-
-namespace match {
-Pattern TypeName() {
-  return {};
-}
-}
+#include "ClassParser.h"
 
 namespace ast {
+
 FileAST Parser::parse(const std::vector<Token> &tokens) {
+  using Iterator = std::vector<Token>::const_iterator;
   FileAST file;
 
-  auto it = tokens.begin();
-  auto end = tokens.end();
+  Iterator it = tokens.begin();
+  Iterator end = tokens.end();
   while (it != end) {
-    auto begin = it;
-    const auto &token = *(it)++;
+    auto begin = it++;
+    // const auto &token = *(it)++;
 
-    if (is_include(begin, end)) {
-    } else if (is_define(begin, end)) {
-    } else if (is_class(begin, end)) {
-      ClassParser parser;
-      auto ast = parser.parse(begin, end);
-      file.push_back(ast);
-    } else if (is_struct(begin, end)) {
-
-    } else if (is_function_declaration(begin, end)) {
-      // } else if (is_function_definition(begin, end)) {
-
-      // } else if (is_ctor_declaration(begin, end)) {
-      // } else if (is_ctor_definition(begin, end)) {
-      //   // TODO based on context
-      //   // BaseTokenizer(){}
-      //   // BaseTokenizer::BaseTokenizer(){}
-      //
-      // } else if (is_dtor_declaration(begin, end)) {
-      // } else if (is_dtor_definition(begin, end)) {
-      //   // TODO based on context
-      //   // ~BaseTokenizer(){}
-      //   // ~BaseTokenizer::BaseTokenizer(){}
-      //
-      // } else if (is_operator_declaration(begin, end)) {
-      // } else if (is_operator_definition(begin, end)) {
+    {
+      ClassParser<Iterator> parser;
+      ClassAST ast;
+      auto next = parser.parse(begin, end, ast);
+      if (next.valid) {
+        file.push_back(ast);
+        continue;
+      }
     }
+    // } else if (is_struct(begin, end)) {
+    //
+    // } else if (is_function_declaration(begin, end)) {
+    //   // } else if (is_function_definition(begin, end)) {
+    //
+    //   // } else if (is_ctor_declaration(begin, end)) {
+    //   // } else if (is_ctor_definition(begin, end)) {
+    //   //   // TODO based on context
+    //   //   // BaseTokenizer(){}
+    //   //   // BaseTokenizer::BaseTokenizer(){}
+    //   //
+    //   // } else if (is_dtor_declaration(begin, end)) {
+    //   // } else if (is_dtor_definition(begin, end)) {
+    //   //   // TODO based on context
+    //   //   // ~BaseTokenizer(){}
+    //   //   // ~BaseTokenizer::BaseTokenizer(){}
+    //   //
+    //   // } else if (is_operator_declaration(begin, end)) {
+    //   // } else if (is_operator_definition(begin, end)) {
+    // }
   }
   return file;
-}
-}
+} // Parse::parse
+
+} // namespace ast

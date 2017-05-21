@@ -3,7 +3,7 @@
 
 #include "LineMeta.h"
 #include "TokenResult.h"
-#include "entities.h"
+#include "tokens.h"
 #include <vector>
 
 void do_parse(LineMeta &, TokenResult &, char c);

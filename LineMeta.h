@@ -2,7 +2,7 @@
 #define SP_CPP_META_LINE_META_H
 
 #include "String.h"
-#include "entities.h"
+#include "tokens.h"
 #include <array>
 
 struct LineMeta {
@@ -33,7 +33,7 @@ struct LineMeta {
   }
 
   bool is_empty() {
-    return data.empty();
+    return data.is_empty();
   }
 
   char peek() const {

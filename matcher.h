@@ -2,15 +2,11 @@
 #define SP_META_CPP_AST_ENTETIES_H
 
 #include "String.h"
-#include "entities.h"
+#include "tokens.h"
 #include <utility>
 #include <vector>
 
 namespace match {
-
-struct Pattern {
-  bool match(const Token &) const;
-};
 
 struct Either {
   std::vector<String> constants;
@@ -84,17 +80,17 @@ struct Step {
     return Step(it, end, false);
   }
 
-  SelfType step(Token &token, const Pattern &p) {
-    if (valid) {
-      if (it != end) {
-        if (p.match(*it)) {
-          token = *it;
-          return Step(it + 1, end, true);
-        }
-      }
-    }
-    return Step(it, end, false);
-  }
+  // SelfType step(Token &token, const Pattern &p) {
+  //   if (valid) {
+  //     if (it != end) {
+  //       if (p.match(*it)) {
+  //         token = *it;
+  //         return Step(it + 1, end, true);
+  //       }
+  //     }
+  //   }
+  //   return Step(it, end, false);
+  // }
 
   template <typename Out, typename Function>
   SelfType step(Out &out, Function f) {
