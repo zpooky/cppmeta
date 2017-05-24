@@ -9,7 +9,7 @@ int main() {
                                "./entities.h",    "./main.cpp",    "./parser.h",
                                "./parser.cpp"};
 
-  std::vector<String> tests = {"./test/Test1.cpp"};
+  std::vector<String> tests = {"./test/Test1cpp"};
 
   for (auto file : tests) {
     File f(file);
@@ -29,7 +29,7 @@ int main() {
       auto current = c.to_yaml();
       std::cout << "|" << c.name.token.c_str() << "|" << current.to_string()<<"|";
     }
-  }
+  }//
   return 0;
 }
 

@@ -104,7 +104,6 @@ public:
 
   template <typename Out>
   SelfType step(Out &out, const Base<Out, Iterator> &f) {
-    // static_assert(std::is_function<Function>::value, "");
     if (valid) {
       if (it != end) {
         SelfType s = *this;

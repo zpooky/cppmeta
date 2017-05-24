@@ -46,7 +46,7 @@ struct TypeIdentifierParser : public match::Base<TypeIdentifier, Iterator> {
     if (next) {
       result = TypeIdentifier(t, {});
     }
-    return it;
+    return next;
   }
 };
 }

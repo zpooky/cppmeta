@@ -4,6 +4,7 @@
 #include "Pattern.h"
 #include "ast.h"
 #include "matcher.h"
+#include <stdio.h>
 
 namespace ast {
 template <typename Iterator>
@@ -18,8 +19,8 @@ public:
         .step(":") //
         .repeat(
             [&](StepType start) { //
-              match::Either scopes({"public", "private", "protected"});
-              String virtuals = "virtual";
+              const match::Either scopes({"public", "private", "protected"});
+              const String virtuals = "virtual";
               return match::either(
                   start,
                   [&](StepType it) {
@@ -62,7 +63,7 @@ class TypenameParser
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(std::vector<TemplateParamterAST> &templates,
+  StepType operator()(std::vector<TemplateParamterAST> &,
                       StepType start) const {
     return match::either(start,
                          [&](StepType it) -> StepType { //
@@ -76,9 +77,8 @@ public:
                          [&](StepType it) -> StepType { //
                            TypeIdentifier type;
                            Token name;
-                           return it //
-                               .step(type, TypeIdentifierParser<Iterator>())
-                               //
+                           return it                                         //
+                               .step(type, TypeIdentifierParser<Iterator>()) //
                                .step(name, VariableName<Iterator>());
                          });
   }
@@ -119,12 +119,13 @@ public:
 
     match::Step<Iterator> start =
         match::start(begin, end)                                     //
-            .option(templates, TemplateParser<Iterator>())          //
+            .option(templates, TemplateParser<Iterator>())           //
             .step(typeQualifier, match::Either({"class", "struct"})) //
-            .step(name, TypeName<Iterator>())                       //
-            .option(inherits, InheritanceParser<Iterator>())        //
+            .step(name, TypeName<Iterator>())                        //
+            .option(inherits, InheritanceParser<Iterator>())         //
             .step("{")                                               //
         ;
+    printf("%d\n", start.valid);
 
     result = ClassAST(name, inherits, templates);
     if (start) {
