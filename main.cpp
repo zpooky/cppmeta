@@ -16,18 +16,18 @@ int main() {
     Tokenizer t(f);
     auto tokens = t.tokenize();
 
-    // std::cout << "\n\n####" << f.name.c_str() << "\n\n";
-    // for (const auto &token : tokens) {
-    //   std::cout << token.to_string() << "\n";
-    // }
-    // std::cout << "\n";
+    std::cout << "\n\n####" << f.name.c_str() << "\n\n";
+    for (const auto &token : tokens) {
+      std::cout << token.to_string() << "\n";
+    }
+    std::cout << "\n";
 
     ast::Parser parser;
     ast::FileAST ast = parser.parse(tokens);
     for (auto &c : ast.classes) {
       // std::cout << yaml::List(c.inherits).to_string("") << "\n";
       auto current = c.to_yaml();
-      std::cout << current.to_string();
+      std::cout << "|" << c.name.token.c_str() << "|" << current.to_string()<<"|";
     }
   }
   return 0;

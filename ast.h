@@ -8,15 +8,6 @@
 namespace ast {
 
 // enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
-struct TypeName {
-  Token name;
-
-  TypeName() : name(){
-  }
-
-  TypeName(Token p_name) : name(p_name) {
-  }
-};
 
 struct NamespaceAST {};
 
@@ -146,7 +137,7 @@ struct ScopeAST {
 
 /*ClassAST*/
 struct ClassAST {
-  TypeName name;
+  Token name;
   std::vector<InheritanceAST> inherits;
   std::vector<TemplateParamterAST> templates;
 
@@ -162,7 +153,7 @@ struct ClassAST {
         protectedAST() {
   }
 
-  ClassAST(const TypeName &p_name,
+  ClassAST(const Token &p_name,
            const std::vector<InheritanceAST> &p_inherits,
            const std::vector<TemplateParamterAST> &p_templates)
       : name(p_name),              //
@@ -176,7 +167,7 @@ struct ClassAST {
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     yaml::yaml dd;
-    dd.push_back("name", name.name);
+    dd.push_back("name", name);
     dd.push_back("dtor", dtorAST);
     dd.push_back("public", publicAST);
     dd.push_back("private", privateAST);

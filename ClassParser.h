@@ -7,27 +7,30 @@
 
 namespace ast {
 template <typename Iterator>
-class ClassParser {
+class InheritanceParser
+    : public match::Base<std::vector<InheritanceAST>, Iterator> {
   using StepType = match::Step<Iterator>;
-  // using SelfType = ClassParser<Iterator>;
 
-  StepType inheritance(StepType step, std::vector<InheritanceAST> &result) {
+public:
+  StepType operator()(std::vector<InheritanceAST> &result,
+                      StepType step) const {
     return step    //
         .step(":") //
         .repeat(
             [&](StepType start) { //
-              auto scopes = match::Either("public", "private", "protected");
-              auto virtuals = "virtual";
+              match::Either scopes({"public", "private", "protected"});
+              String virtuals = "virtual";
               return match::either(
                   start,
                   [&](StepType it) {
                     Token scope;
                     Token virt;
                     TypeIdentifier from;
-                    StepType r = it                          //
-                                     .option(scope, scopes)  //
-                                     .option(virt, virtuals) //
-                                     .step(from, TypeIdentifierParser());
+                    StepType r =
+                        it                          //
+                            .option(scope, scopes)  //
+                            .option(virt, virtuals) //
+                            .step(from, TypeIdentifierParser<Iterator>());
                     if (r.valid) {
                       result.emplace_back(scope, virt, from);
                     }
@@ -37,10 +40,11 @@ class ClassParser {
                     Token scope;
                     Token virt;
                     TypeIdentifier from;
-                    StepType r = it                          //
-                                     .option(virt, virtuals) //
-                                     .option(scope, scopes)  //
-                                     .step(from, TypeIdentifierParser());
+                    StepType r =
+                        it                          //
+                            .option(virt, virtuals) //
+                            .option(scope, scopes)  //
+                            .step(from, TypeIdentifierParser<Iterator>());
 
                     if (r.valid) {
                       result.emplace_back(scope, virt, from);
@@ -49,60 +53,83 @@ class ClassParser {
                   });
             },
             ",");
-  } // inheritance
+  }
+}; // InheritanceParser
 
-  StepType typenamed(StepType start,
-                     std::vector<TemplateParamterAST> &templates) {
+template <typename Iterator>
+class TypenameParser
+    : public match::Base<std::vector<TemplateParamterAST>, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  StepType operator()(std::vector<TemplateParamterAST> &templates,
+                      StepType start) const {
     return match::either(start,
                          [&](StepType it) -> StepType { //
                            Token t;
                            Token type;
-                           return it                                        //
-                               .step(t, match::Either("class", "typename")) //
-                               .step(type, TypeName());
+                           return it //
+                               .step(t, match::Either({"class", "typename"}))
+                               //
+                               .step(type, TypeName<Iterator>());
                          },
                          [&](StepType it) -> StepType { //
                            TypeIdentifier type;
                            Token name;
-                           return it                               //
-                               .step(type, TypeIdentifierParser()) //
-                               .step(name, VariableName());
+                           return it //
+                               .step(type, TypeIdentifierParser<Iterator>())
+                               //
+                               .step(name, VariableName<Iterator>());
                          });
-  } // typenamed
+  }
+}; // TypenamedParser
 
-  StepType templated(StepType step, std::vector<TemplateParamterAST> &result) {
-    return step           //
-        .step("template") //
-        .step("<")        //
-        .repeat(
-            [&](StepType start) -> StepType { //
-              return typenamed(start, result);
-            },
-            ",") //
+template <typename Iterator>
+class TemplateParser
+    : public match::Base<std::vector<TemplateParamterAST>, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  TemplateParser() {
+  }
+
+  match::Step<Iterator> operator()(std::vector<TemplateParamterAST> &result,
+                                   match::Step<Iterator> step) const {
+    return step                                          //
+        .step("template")                                //
+        .step("<")                                       //
+        .repeat(result, TypenameParser<Iterator>(), ",") //
         .step(">");
   } // templated
+};  // TemplateParser
+
+template <typename Iterator>
+class ClassParser {
+private:
+  using StepType = match::Step<Iterator>;
 
 public:
   StepType parse(Iterator begin, Iterator end, ClassAST &result) {
     Token typeQualifier;
+    // match::Either qualifier({"class", "struct"});
     Token name;
+
     std::vector<InheritanceAST> inherits;
     std::vector<TemplateParamterAST> templates;
-    auto start = match::start(begin, end)                   //
-                     .option([&](StepType &o) -> StepType { //
-                       return templated(o, templates);
-                     })
-                     .step(typeQualifier, match::Either("class", "struct")) //
-                     .step(name, TypeName())                                //
-                     .option([&](StepType &o) -> StepType {                 //
-                       return inheritance(o, inherits);
-                     }) //
-                     .step("{");
+
+    match::Step<Iterator> start =
+        match::start(begin, end)                                     //
+            .option(templates, TemplateParser<Iterator>())          //
+            .step(typeQualifier, match::Either({"class", "struct"})) //
+            .step(name, TypeName<Iterator>())                       //
+            .option(inherits, InheritanceParser<Iterator>())        //
+            .step("{")                                               //
+        ;
 
     result = ClassAST(name, inherits, templates);
     if (start) {
       Token scope;
-      match::Either scopes_match("public", "private", "protected");
+      match::Either scopes_match({"public", "private", "protected"});
       auto scopeStart = start                          //
                             .step(scope, scopes_match) //
                             .step(":");
@@ -116,7 +143,7 @@ public:
     }
     return start.step("}").step(";");
   }
-}; // class Parser
+}; // ClassParser
 } // namespace ast
 
 #endif

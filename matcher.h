@@ -3,16 +3,25 @@
 
 #include "String.h"
 #include "tokens.h"
+#include <type_traits>
 #include <utility>
 #include <vector>
 
+namespace ast {}
+
 namespace match {
+
+template <typename, typename>
+class Base;
 
 struct Either {
   std::vector<String> constants;
 
-  template <typename... Tail>
-  Either(Tail &&... tail) : constants{std::forward<String>(tail)...} {
+  // template <typename... Tail>
+  // Either(Tail &&... tail) : constants{std::forward<String>(tail)...} {
+  // }
+
+  Either(const std::initializer_list<String> &s) : constants(s) {
   }
 
   bool match(const Token &match) const {
@@ -35,6 +44,7 @@ struct Either {
 
 template <typename Iterator>
 struct Step {
+public:
   using SelfType = Step<Iterator>;
   Iterator it;
   Iterator end;
@@ -92,22 +102,13 @@ struct Step {
   //   return Step(it, end, false);
   // }
 
-  template <typename Out, typename Function>
-  SelfType step(Out &out, Function f) {
+  template <typename Out>
+  SelfType step(Out &out, const Base<Out, Iterator> &f) {
+    // static_assert(std::is_function<Function>::value, "");
     if (valid) {
       if (it != end) {
-        return f(out, *this);
-      }
-    }
-    return SelfType(it, end, valid);
-  }
-
-  SelfType option(const String &constant) {
-    if (valid) {
-      if (it != end) {
-        if (*it == constant) {
-          return SelfType(it + 1, end, valid);
-        }
+        SelfType s = *this;
+        return f(out, s);
       }
     }
     return SelfType(it, end, valid);
@@ -125,26 +126,64 @@ struct Step {
     return Step(it, end, valid);
   }
 
-private:
-  SelfType either(Token &match) {
-    return SelfType(it, end, false);
-  }
-
-public:
-  template <typename Constant, typename... Constants>
-  SelfType either(Token &match, const Constant &head,
-                  const Constants &... tail) {
-    if (it != end && valid) {
-      if (*it == head) {
-        match = *it;
-        return SelfType(it + 1, end, true);
+  template <typename Out>
+  SelfType option(Out &out, const Base<Out, Iterator> &f) {
+    if (valid) {
+      if (it != end) {
+        SelfType res = f(out, *this);
+        if (res) {
+          return res;
+        }
       }
-      return either(match, tail...);
-    } else {
-      return SelfType(it, end, false);
     }
+    return SelfType(it, end, valid);
   }
 
+  SelfType option(const char *) = delete;
+  SelfType option(const String &constant) {
+    if (valid) {
+      if (it != end) {
+        if (*it == constant) {
+          return SelfType(it + 1, end, valid);
+        }
+      }
+    }
+    return SelfType(it, end, valid);
+  }
+
+  SelfType option(Token &, const char *) = delete;
+  SelfType option(Token &t, const String &constant) {
+    if (valid) {
+      if (it != end) {
+        if (*it == constant) {
+          t = *it;
+          return SelfType(it + 1, end, valid);
+        }
+      }
+    }
+    return SelfType(it, end, valid);
+  }
+
+  // private:
+  //   SelfType either(Token &match) {
+  //     return SelfType(it, end, false);
+  //   }
+  //
+  // public:
+  //   template <typename Constant, typename... Constants>
+  //   SelfType either(Token &match, const Constant &head,
+  //                   const Constants &... tail) {
+  //     if (it != end && valid) {
+  //       if (*it == head) {
+  //         match = *it;
+  //         return SelfType(it + 1, end, true);
+  //       }
+  //       return either(match, tail...);
+  //     } else {
+  //       return SelfType(it, end, false);
+  //     }
+  //   }
+  //
   // template <typename... Term>
   // SelfType combination(Token &, const String &, const Term &...);
   //
@@ -199,6 +238,25 @@ public:
     return current;
   }
 
+  template <typename Out, typename Function>
+  SelfType repeat(Out &out, Function f, const String &separator) {
+    SelfType current = *this;
+  start:
+    if (current.valid) {
+      SelfType result = f(out, current);
+      if (result) {
+        current = result;
+        if (current.it != current.end) {
+          if (*current.it == separator) {
+            current = SelfType(current.it + 1, current.end, true);
+            goto start;
+          }
+        }
+      }
+    }
+    return current;
+  }
+
   operator Iterator() {
     return it;
   }
@@ -206,7 +264,7 @@ public:
   operator bool() {
     return valid;
   }
-};
+}; // class Step
 
 template <typename Iterator>
 Step<Iterator> start(Iterator begin, Iterator end) {
@@ -227,6 +285,13 @@ Step<Iterator> either(Step<Iterator> s, Function first, Function2 second) {
   }
   return s;
 }
+
+template <typename T, typename Iterator>
+class Base {
+public:
+  virtual Step<Iterator> operator()(T &, Step<Iterator> step) const = 0;
+}; // class Base
+
 } // namespace match
 
 #endif

@@ -7,33 +7,40 @@
 
 namespace ast {
 
-struct Pattern {
-  template <typename Iterator>
-  match::Step<Iterator> operator()(Token &, match::Step<Iterator> it) {
+template <typename Iterator>
+struct Pattern : public match::Base<Token, Iterator> {
+  match::Step<Iterator> operator()(Token &t, match::Step<Iterator> it) const {
     if (it.valid) {
       if (it.it != it.end) {
         for (const char *keyword : cpp::keywords) {
           if (*it.it == keyword) {
-            return match::Step<Iterator>(it.it + 1, it.end, false);
+            return match::Step<Iterator>(it.it, it.end, false);
           }
         }
       }
     }
-    // TODO
+    t = *it.it;
+
     auto next = it.it != it.end ? it.it + 1 : it.it;
     return match::Step<Iterator>(next, it.end, true);
   }
 };
 
-Pattern TypeName();
-Pattern VariableName();
+template <typename Iterator>
+Pattern<Iterator> TypeName() {
+  return {};
+}
+template <typename Iterator>
+Pattern<Iterator> VariableName() {
+  return {};
+}
 
-struct TypeIdentifierParser {
+template <typename Iterator>
+struct TypeIdentifierParser : public match::Base<TypeIdentifier, Iterator> {
 
-  template <typename Iterator>
   match::Step<Iterator> operator()(TypeIdentifier &result,
-                                   match::Step<Iterator> it) {
-    Pattern p;
+                                   match::Step<Iterator> it) const {
+    Pattern<Iterator> p;
     Token t;
     auto next = p(t, it);
     if (next) {

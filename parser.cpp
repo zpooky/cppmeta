@@ -16,9 +16,10 @@ FileAST Parser::parse(const std::vector<Token> &tokens) {
     {
       ClassParser<Iterator> parser;
       ClassAST ast;
-      auto next = parser.parse(begin, end, ast);
+      match::Step<Iterator> next = parser.parse(begin, end, ast);
       if (next.valid) {
         file.push_back(ast);
+        it = next;
         continue;
       }
     }
@@ -42,6 +43,7 @@ FileAST Parser::parse(const std::vector<Token> &tokens) {
     //   // } else if (is_operator_declaration(begin, end)) {
     //   // } else if (is_operator_definition(begin, end)) {
     // }
+    exit(1);
   }
   return file;
 } // Parse::parse

@@ -2,10 +2,4 @@
 
 namespace ast {
 
-Pattern TypeName() {
-  return {};
-}
-Pattern VariableName() {
-  return {};
-}
 }
