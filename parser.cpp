@@ -43,7 +43,7 @@ FileAST Parser::parse(const std::vector<Token> &tokens) {
     //   // } else if (is_operator_declaration(begin, end)) {
     //   // } else if (is_operator_definition(begin, end)) {
     // }
-    throw "wtf";
+    throw *it;
   }
   return file;
 } // Parse::parse

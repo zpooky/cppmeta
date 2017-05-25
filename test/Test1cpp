@@ -1,4 +1,4 @@
-//vim: set ft=vim;
+// vim: set ft=vim;
 class TestBase { //
 };
 
@@ -52,17 +52,17 @@ class TestSub12 /*:*/ /*TestBase,*/ // TestBase2
 template <typename T>
 class TestSub13 {};
 
-template <typename>
+template <typename = int>
 class TestSub14 {};
 
-// template <typename T, typename B>
-// class TestSub15 {};
-//
-// template <typename T = int>
-// class TestSub16 {};
-//
-// template <typename T, typename B = int>
-// class TestSub17 {};
+template <typename T, typename B>
+class TestSub15 {};
 
-// template<size_t s = 1>
-// class TestSub18 {};
+template <typename T = int>
+class TestSub16 {};
+
+template <typename T, typename B = int>
+class TestSub17 {};
+
+template<int s = 1>
+class TestSub18 {};

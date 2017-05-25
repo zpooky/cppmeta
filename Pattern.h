@@ -17,8 +17,15 @@ struct Pattern : public match::Base<Token, Iterator> {
             return match::Step<Iterator>(it.it, it.end, false);
           }
         }
+        //
+        for (const char *s : cpp::symbols) {
+          if (*it.it == s) {
+            return match::Step<Iterator>(it.it, it.end, false);
+          }
+        }
       }
     }
+
     t = *it.it;
 
     auto next = it.it != it.end ? it.it + 1 : it.it;

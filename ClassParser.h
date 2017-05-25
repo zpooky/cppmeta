@@ -1,6 +1,7 @@
 #ifndef SP_CPP_META_CLASS_PARSER_H
 #define SP_CPP_META_CLASS_PARSER_H
 
+#include "ExpressionParser.h"
 #include "Pattern.h"
 #include "ast.h"
 #include "matcher.h"
@@ -58,42 +59,51 @@ public:
 }; // InheritanceParser
 
 template <typename Iterator>
-class TypenameParser
-    : public match::Base<std::vector<TemplateParamterAST>, Iterator> {
+class TypenameParser : public match::Base<std::vector<TypenameAST>, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(std::vector<TemplateParamterAST> &,
-                      StepType start) const {
+  StepType operator()(std::vector<TypenameAST> &, StepType start) const {
     return match::either(start,
                          [&](StepType it) -> StepType { //
                            Token t;
                            Token type;
-                           return it //
-                               .step(t, match::Either({"class", "typename"}))
-                               //
-                               .step(type, TypeName<Iterator>());
+                           ExpressionAST exp;
+                           return it                                          //
+                               .step(t, match::Either({"class", "typename"})) //
+                               .option(type, TypeName<Iterator>())            //
+                               .option([&](StepType s) {
+                                 return s
+                                     .step("=") //
+                                     .step(exp, ExpressionParser<Iterator>());
+                               });
+
                          },
                          [&](StepType it) -> StepType { //
                            TypeIdentifier type;
                            Token name;
+                           ExpressionAST exp;
                            return it                                         //
                                .step(type, TypeIdentifierParser<Iterator>()) //
-                               .step(name, VariableName<Iterator>());
+                               .step(name, VariableName<Iterator>())         //
+                               .option([&](StepType s) {
+                                 return s
+                                     .step("=") //
+                                     .step(exp, ExpressionParser<Iterator>());
+                               });
                          });
   }
 }; // TypenamedParser
 
 template <typename Iterator>
-class TemplateParser
-    : public match::Base<std::vector<TemplateParamterAST>, Iterator> {
+class TemplateParser : public match::Base<std::vector<TypenameAST>, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
   TemplateParser() {
   }
 
-  match::Step<Iterator> operator()(std::vector<TemplateParamterAST> &result,
+  match::Step<Iterator> operator()(std::vector<TypenameAST> &result,
                                    match::Step<Iterator> step) const {
     return step                                          //
         .step("template")                                //
@@ -115,7 +125,7 @@ public:
     Token name;
 
     std::vector<InheritanceAST> inherits;
-    std::vector<TemplateParamterAST> templates;
+    std::vector<TypenameAST> templates;
 
     match::Step<Iterator> start =
         match::start(begin, end)                                     //

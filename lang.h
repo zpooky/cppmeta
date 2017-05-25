@@ -6,6 +6,7 @@
 namespace cpp {
 
 extern const std::array<const char *, 30> keywords;
+extern const std::array<const char *, 37> symbols;
 
 }
 

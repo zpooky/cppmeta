@@ -35,6 +35,21 @@ struct TypedefAST {};
 
 /*UsingAST*/
 struct UsingAST {};
+
+struct FunctionInvocationAST {
+
+  //
+};
+
+/*ExpressionAST*/
+struct ExpressionAST {
+  std::vector<Token> tokens;
+
+  template <typename... Tail>
+  ExpressionAST(Tail &&... tail) : tokens{std::forward<Token>(tail)...} {
+  }
+  //
+};
 /*TemplateAST*/
 struct Typed {
   Token type;
@@ -60,20 +75,20 @@ struct Named {
   }
 };
 enum class Type { TYPED, NAMED };
-struct TemplateParamterAST {
+struct TypenameAST {
   Typed typed;
   Named named;
-  std::vector<TemplateParamterAST> m_templates;
+  std::vector<TypenameAST> m_templates;
   Type type;
 
-  TemplateParamterAST(const Token &p_type, const Token &p_name) //
+  TypenameAST(const Token &p_type, const Token &p_name) //
       : typed{p_type, p_name},
         named(),
         m_templates{},
         type(Type::TYPED) {
   }
 
-  TemplateParamterAST(const Token &p_name) //
+  TypenameAST(const Token &p_name) //
       : typed(),
         named{p_name},
         m_templates(),
@@ -84,13 +99,13 @@ struct TemplateParamterAST {
 /*TypeIdentifier*/
 struct TypeIdentifier {
   Token name;
-  std::vector<TemplateParamterAST> templates;
+  std::vector<TypenameAST> templates;
 
   TypeIdentifier() //
       : TypeIdentifier(Token(), {}) {
   }
 
-  TypeIdentifier(const Token &n, const std::vector<TemplateParamterAST> &t)
+  TypeIdentifier(const Token &n, const std::vector<TypenameAST> &t)
       : name(n), templates(t) {
   }
 };
@@ -139,7 +154,7 @@ struct ScopeAST {
 struct ClassAST {
   Token name;
   std::vector<InheritanceAST> inherits;
-  std::vector<TemplateParamterAST> templates;
+  std::vector<TypenameAST> templates;
 
   DestructorAST dtorAST;
   /**/
@@ -153,9 +168,8 @@ struct ClassAST {
         protectedAST() {
   }
 
-  ClassAST(const Token &p_name,
-           const std::vector<InheritanceAST> &p_inherits,
-           const std::vector<TemplateParamterAST> &p_templates)
+  ClassAST(const Token &p_name, const std::vector<InheritanceAST> &p_inherits,
+           const std::vector<TypenameAST> &p_templates)
       : name(p_name),              //
         inherits(p_inherits),      //
         templates(p_templates),    //
