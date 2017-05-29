@@ -3,9 +3,8 @@
 
 namespace ast {
 
-FileAST Parser::parse(const std::vector<Token> &tokens) {
+void Parser::parse(const std::vector<Token> &tokens, FileAST &result) {
   using Iterator = std::vector<Token>::const_iterator;
-  FileAST file;
 
   Iterator it = tokens.begin();
   Iterator end = tokens.end();
@@ -18,7 +17,7 @@ FileAST Parser::parse(const std::vector<Token> &tokens) {
       ClassAST ast;
       match::Step<Iterator> next = parser.parse(begin, end, ast);
       if (next.valid) {
-        file.push_back(ast);
+        result.push_back(ast);
         it = next;
         continue;
       }
@@ -43,9 +42,8 @@ FileAST Parser::parse(const std::vector<Token> &tokens) {
     //   // } else if (is_operator_declaration(begin, end)) {
     //   // } else if (is_operator_definition(begin, end)) {
     // }
-    throw *it;
+    throw * it;
   }
-  return file;
 } // Parse::parse
 
 } // namespace ast

@@ -1,4 +1,7 @@
-// vim: set ft=vim;
+// vim: set ft=cpp;
+
+#include <iostream>
+
 class TestBase { //
 };
 

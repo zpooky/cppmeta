@@ -191,10 +191,19 @@ struct ClassAST {
     return result;
   }
 };
+/*IncludeAST*/
+
+struct IncludeAST {
+};
 
 /*FileAST*/
 struct FileAST {
   std::vector<ClassAST> classes;
+  std::vector<IncludeAST> includes;
+
+  void push_back(const IncludeAST& ast){
+    includes.push_back(ast);
+  }
 
   void push_back(const ClassAST &ast) {
     classes.push_back(ast);

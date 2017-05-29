@@ -273,16 +273,20 @@ Step<Iterator> start(Iterator begin, Iterator end) {
 template <typename Iterator, typename Function, typename Function2>
 Step<Iterator> either(Step<Iterator> s, Function first, Function2 second) {
   if (s.valid) {
-    Step<Iterator> r = first(s);
-    if (r) {
-      return r;
+    {
+      Step<Iterator> r = first(s);
+      if (r) {
+        return r;
+      }
     }
-    Step<Iterator> r1 = second(s);
-    if (r1) {
-      return r1;
+    {
+      Step<Iterator> r = second(s);
+      if (r) {
+        return r;
+      }
     }
   }
-  return s;
+  return Step<Iterator>(s.it, s.end, false);
 }
 
 template <typename T, typename Iterator>
