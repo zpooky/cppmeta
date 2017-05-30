@@ -30,14 +30,12 @@ int main() {
 
       ast::Parser parser;
       parser.parse(ppTokens, fileAST);
-      for (auto &c : fileAST.classes) {
-        // std::cout << yaml::List(c.inherits).to_string("") << "\n";
-        auto current = c.to_yaml();
-        std::cout << "|" << c.name.token.c_str() << "|" << current.to_string()
-                  << "|";
-      }
+
+      auto current = fileAST.to_yaml();
+      std::cout << current.to_string() << "\n";
+
     } catch (const Token &t) {
-      std::cerr << t.to_string() << "\n";
+      std::cerr << "error:" << t.to_string() << "\n";
     }
   } //
   return 0;

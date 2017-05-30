@@ -141,6 +141,11 @@ struct Token {
   bool operator==(const char *t) const {
     return std::strcmp(token.c_str(), t) == 0;
   }
+
+  bool operator==(const Token &t) const {
+    return token == t.token;
+  }
+
   bool operator==(const String &t) const {
     return token == t;
   }

@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#define ASD class
+
 class TestBase { //
 };
 
@@ -69,3 +71,6 @@ class TestSub17 {};
 
 template<int s = 1>
 class TestSub18 {};
+
+ASD TestDefine {
+};

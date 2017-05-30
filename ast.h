@@ -32,6 +32,25 @@ struct MemberAST {};
 struct ExternalAST {};
 
 struct TypedefAST {};
+/*DefineAST*/
+
+struct DefineAST {
+  Token key;
+  std::vector<Token> values;
+
+  DefineAST(const Token &p_key, const std::vector<Token> &p_values)
+      : key(p_key), values(p_values) {
+  }
+
+  DefineAST() : key(), values() {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("key", key);
+    return result;
+  }
+};
 
 /*UsingAST*/
 struct UsingAST {};
@@ -194,19 +213,39 @@ struct ClassAST {
 /*IncludeAST*/
 
 struct IncludeAST {
+  Token file;
+  IncludeAST(const Token &p_file) : file(p_file) {
+  }
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("file", file);
+    return result;
+  }
 };
 
 /*FileAST*/
 struct FileAST {
   std::vector<ClassAST> classes;
   std::vector<IncludeAST> includes;
+  std::vector<DefineAST> defines;
 
-  void push_back(const IncludeAST& ast){
+  void push_back(const IncludeAST &ast) {
     includes.push_back(ast);
   }
 
   void push_back(const ClassAST &ast) {
     classes.push_back(ast);
+  }
+
+  void push_back(const DefineAST &ast) {
+    defines.push_back(ast);
+  }
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("includes", yaml::List(includes));
+    result.push_back("defines", yaml::List(defines));
+    result.push_back("classes", yaml::List(classes));
+    return result;
   }
 };
 } // namespace ast
