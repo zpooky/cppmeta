@@ -11,6 +11,26 @@
 namespace ast {
 
 template <typename Iterator>
+class IfNotDefineMacroParser
+    : public match::Base<IfNotDefinMacroAST, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  // IfNotDefineMacroParser(std::stack<MacroCondition>
+  StepType operator()(IfNotDefinMacroAST &capture, StepType start) const {
+    Token key;
+    auto inital = start.step("#").step("ifndef").step(key);
+    if (inital) {
+      capture = IfNotDefinMacroAST(key);
+    }else{
+      return start.step("#").step("endif");
+    }
+    return inital;
+  }
+};
+
+template <typename Iterator>
 class DefineConstantParser : public match::Base<DefineAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
@@ -130,6 +150,14 @@ public:
       {
         DefineAST ast;
         auto ret = current.step(ast, DefineConstantParser<Iterator>());
+        if (ret) {
+          result.push_back(ast);
+          return ret;
+        }
+      }
+      {
+        IfNotDefinMacroAST ast;
+        auto ret = current.step(ast, IfNotDefineMacroParser<Iterator>());
         if (ret) {
           result.push_back(ast);
           return ret;

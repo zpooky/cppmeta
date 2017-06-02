@@ -52,6 +52,17 @@ struct DefineAST {
   }
 };
 
+struct IfNotDefinMacroAST {
+public:
+  Token key;
+
+  IfNotDefinMacroAST() : IfNotDefinMacroAST(Token()) {
+  }
+
+  IfNotDefinMacroAST(const Token &p_key) : key(p_key) {
+  }
+};
+
 /*UsingAST*/
 struct UsingAST {};
 
@@ -226,8 +237,10 @@ struct IncludeAST {
 /*FileAST*/
 struct FileAST {
   std::vector<ClassAST> classes;
+  // preprocess
   std::vector<IncludeAST> includes;
   std::vector<DefineAST> defines;
+  std::vector<IfNotDefinMacroAST> ifNotDefines;
 
   void push_back(const IncludeAST &ast) {
     includes.push_back(ast);
@@ -240,6 +253,11 @@ struct FileAST {
   void push_back(const DefineAST &ast) {
     defines.push_back(ast);
   }
+
+  void push_back(const IfNotDefinMacroAST &ast) {
+    ifNotDefines.push_back(ast);
+  }
+
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     result.push_back("includes", yaml::List(includes));
