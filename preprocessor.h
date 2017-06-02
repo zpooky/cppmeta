@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 //
+#define AS adaads \ asdasda
 
 namespace ast {
 
@@ -17,12 +18,28 @@ private:
 public:
   StepType operator()(DefineAST &capture, StepType start) const {
     Token key;
-    Token value;
-    auto result = start.step("#").step("define").step(key).step(value);
-    if (result) {
-      capture = DefineAST(key, {value});
+    std::vector<Token> values;
+    auto inital = start.step("#").step("define").step(key);
+    if (inital) {
+      auto line = (*inital.it).location.line;
+      auto current = inital;
+      bool next_line = false;
+      while (current.it != current.end &&
+             ((*current.it).location.line == line || next_line)) {
+        next_line = false;
+        line = (*current.it).location.line;
+
+        if ((*current.it).token == "\\") {
+          next_line = true;
+        } else {
+          values.push_back(*current.it);
+        }
+        current = StepType(current.it + 1, current.end, true);
+      }
+      capture = DefineAST(key, values);
+      return current;
     }
-    return result;
+    return inital;
   }
 };
 
@@ -91,18 +108,19 @@ public:
     for_each(res, start, [&result](StepType current) -> StepType {
       {
         Token t;
-        auto ret =
-            match::either(current,
-                          [&t](StepType it) -> StepType {
-                            //
-                            // return match(it, "#", "include", "<", t, ">");
-                            return it.step("#").step("include").step("<").step(t).step(">");
-                          },
-                          [&t](StepType it) -> StepType {
-                            //
-                            // return it.step("#").step("include").step("\"").step(t).step("\"");
-                            return match(it, "#", "include", "\"", t, "\"");
-                          });
+        auto ret = match::either(
+            current,
+            [&t](StepType it) -> StepType {
+              //
+              // return match(it, "#", "include", "<", t, ">");
+              return it.step("#").step("include").step("<").step(t).step(">");
+            },
+            [&t](StepType it) -> StepType {
+              //
+              // return
+              // it.step("#").step("include").step("\"").step(t).step("\"");
+              return match(it, "#", "include", "\"", t, "\"");
+            });
         // printf("#####################%s\n", t.token.c_str());
         if (ret) {
           result.push_back(IncludeAST(t));
