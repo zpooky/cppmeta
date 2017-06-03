@@ -8,6 +8,10 @@
 
 #define ASD class
 
+#define SP_DDD_CLASS                                                           \
+  ddd {                                                                        \
+  }
+
 class TestBase { //
 };
 
@@ -73,9 +77,9 @@ class TestSub16 {};
 template <typename T, typename B = int>
 class TestSub17 {};
 
-template<int s = 1>
+template <int s = 1>
 class TestSub18 {};
 
-ASD TestDefine {
-};
+ASD TestDefine{};
 
+class SP_DDD_CLASS;

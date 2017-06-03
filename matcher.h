@@ -263,6 +263,9 @@ public:
   operator bool() {
     return valid;
   }
+
+  void replace(const std::vector<Token>&){
+  }
 }; // class Step
 
 template <typename Iterator>

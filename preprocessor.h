@@ -23,10 +23,19 @@ public:
     auto inital = start.step("#").step("ifndef").step(key);
     if (inital) {
       capture = IfNotDefinMacroAST(key);
-    }else{
-      return start.step("#").step("endif");
     }
     return inital;
+  }
+};
+
+template <typename Iterator>
+class EndIfMacroParser : public match::Base<Token, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  StepType operator()(Token &, StepType start) const {
+    return start.step("#").step("endif");
   }
 };
 
@@ -41,7 +50,7 @@ public:
     std::vector<Token> values;
     auto inital = start.step("#").step("define").step(key);
     if (inital) {
-      auto line = (*inital.it).location.line;
+      auto line = (*(inital.it - 1)).location.line;
       auto current = inital;
       bool next_line = false;
       while (current.it != current.end &&
@@ -75,9 +84,12 @@ public:
 
   StepType operator()(Token &, StepType start) const {
     for (const auto &current : file.defines) {
+      // printf("%s == %s\n", current.key.token.c_str(), (*start.it).token.c_str());
       if (current.key == *start.it) {
         // TODO make better
-        (*start.it).token = current.values[0].token;
+        // (*start.it).token = current.values[0].token;
+        start.replace(current.values);
+        break;
       }
     }
     return StepType(start.it, start.end, false);
@@ -160,6 +172,13 @@ public:
         auto ret = current.step(ast, IfNotDefineMacroParser<Iterator>());
         if (ret) {
           result.push_back(ast);
+          return ret;
+        }
+      }
+      {
+        Token dummy;
+        auto ret = current.step(dummy, EndIfMacroParser<Iterator>());
+        if (ret) {
           return ret;
         }
       }
