@@ -1,17 +1,17 @@
 #ifndef SP_META_CPP_TOKEN_RESULT_H
 #define SP_META_CPP_TOKEN_RESULT_H
 
-#include "tokens.h"
+#include "ArrayList.h"
 #include "LineMeta.h"
-#include <vector>
+#include "tokens.h"
 
 /**/
 struct TokenResult {
   LineMeta &line;
   Location location;
-  std::vector<Token> &result;
+  sp::ArrayList<Token> &result;
 
-  TokenResult(std::vector<Token> &p_result, LineMeta &p_line)
+  TokenResult(sp::ArrayList<Token> &p_result, LineMeta &p_line)
       : line(p_line), location(0, Column(0, 0)), result(p_result) {
   }
 

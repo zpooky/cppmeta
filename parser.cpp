@@ -3,8 +3,8 @@
 
 namespace ast {
 
-void Parser::parse(const std::vector<Token> &tokens, FileAST &result) {
-  using Iterator = std::vector<Token>::const_iterator;
+void Parser::parse(sp::ArrayList<Token> &tokens, FileAST &result) {
+  using Iterator = sp::ArrayList<Token>::const_iterator;
 
   Iterator it = tokens.begin();
   Iterator end = tokens.end();

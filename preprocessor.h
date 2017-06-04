@@ -1,10 +1,10 @@
 #ifndef SP_CPP_META_PREPROCESSOR_H
 #define SP_CPP_META_PREPROCESSOR_H
 
+#include "ArrayList.h"
 #include "ast.h"
 #include "matcher.h"
 #include <iostream>
-#include <vector>
 //
 #define AS adaads \ asdasda
 
@@ -50,7 +50,7 @@ public:
     std::vector<Token> values;
     auto inital = start.step("#").step("define").step(key);
     if (inital) {
-      auto line = (*(inital.it - 1)).location.line;
+      auto line = key.location.line;
       auto current = inital;
       bool next_line = false;
       while (current.it != current.end &&
@@ -84,7 +84,8 @@ public:
 
   StepType operator()(Token &, StepType start) const {
     for (const auto &current : file.defines) {
-      // printf("%s == %s\n", current.key.token.c_str(), (*start.it).token.c_str());
+      // printf("%s == %s\n", current.key.token.c_str(),
+      // (*start.it).token.c_str());
       if (current.key == *start.it) {
         // TODO make better
         // (*start.it).token = current.values[0].token;
@@ -98,7 +99,7 @@ public:
 
 class Preprocessor {
 private:
-  using Tokens = std::vector<Token>;
+  using Tokens = sp::ArrayList<Token>;
   using Iterator = Tokens::iterator;
   using StepType = match::Step<Iterator>;
 

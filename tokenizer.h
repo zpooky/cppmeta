@@ -4,7 +4,7 @@
 #include "LineMeta.h"
 #include "TokenResult.h"
 #include "tokens.h"
-#include <vector>
+#include "ArrayList.h"
 
 void do_parse(LineMeta &, TokenResult &, char c);
 
@@ -26,7 +26,7 @@ public:
   Tokenizer(const File &p_file) : file(p_file) {
   }
 
-  std::vector<Token> tokenize();
+  sp::ArrayList<Token> tokenize();
 };
 
 /*StringTokenizer*/

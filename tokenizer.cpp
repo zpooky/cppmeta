@@ -7,7 +7,7 @@
 #include <forward_list>
 #include <fstream>
 #include <initializer_list>
-#include <vector>
+#include "ArrayList.h"
 
 /*Util*/
 bool is_newline(char c);
@@ -78,7 +78,7 @@ ITokenizer *BaseTokenizer::parse(LineMeta &line, TokenResult &result) {
   return tokenizer;
 }
 /*Tokenizer*/
-std::vector<Token> Tokenizer::tokenize() {
+sp::ArrayList<Token> Tokenizer::tokenize() {
   std::ifstream fs;
   // fs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   fs.open(file.name.c_str());
@@ -86,7 +86,7 @@ std::vector<Token> Tokenizer::tokenize() {
     throw "wtf";
   }
 
-  std::vector<Token> tokens;
+  sp::ArrayList<Token> tokens;
 
   uint32_t lineno(0);
 

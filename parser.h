@@ -1,10 +1,10 @@
 #ifndef SP_CPP_META_PARSER_H
 #define SP_CPP_META_PARSER_H
 
+#include "ArrayList.h"
 #include "ast.h"
 #include "matcher.h"
 #include "tokens.h"
-#include <vector>
 
 namespace ast {
 
@@ -59,7 +59,7 @@ public:
   Parser() {
   }
 
-  void parse(const std::vector<Token> &, FileAST &);
+  void parse(sp::ArrayList<Token> &, FileAST &);
 };
 }
 
