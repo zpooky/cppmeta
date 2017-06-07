@@ -13,12 +13,14 @@ int main() {
   std::vector<String> tests = {"./test/Test1cpp"};
 
   sp::ArrayList<int> a;
+  uint64_t d(0);
   for (int i = 0; i < 5000; ++i) {
+    for (const auto &c : a) {
+      d += c;
+    }
     a.push_back(i);
   }
-  for (const auto &c : a) {
-    printf("%d\n", c);
-  }
+  printf("%lu\n",d);
 
   // for (auto file : tests) {
   //   try {

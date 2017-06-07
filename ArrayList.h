@@ -20,10 +20,10 @@ template <typename NodeType, typename T, size_t slab>
 static void node_delete(NodeType &node) {
   if (node.next) {
     if (node.next_type == impl::Type::STATIC) {
-      ShallowNode<T, slab> *n = node.next;
+      auto n = static_cast<StaticNode<T, slab> *>(node.next);
       delete n;
     } else {
-      StaticNode<T, slab> *n = node.next;
+      auto n = static_cast<ShallowNode<T, slab> *>(node.next);
       delete n;
     }
   }
@@ -91,7 +91,7 @@ public:
   }
 
   ~ArrayList() {
-    if(m_node){
+    if (m_node) {
       delete m_node;
       m_node = nullptr;
     }
@@ -185,32 +185,33 @@ public:
   } // begin()
 
   iterator end() {
-    impl::Type type = impl::Type::STATIC;
-    void *c = m_node;
-    size_t index = 0;
-  start:
-    if (c) {
-      if (type == impl::Type::STATIC) {
-        auto current = static_cast<impl::StaticNode<T, slab> *>(c);
-        index = current->index;
-        if (current->next) {
-          type = current->next_type;
-          c = current->next;
-          index = current->index;
-          goto start;
-        }
-      } else {
-        auto current = static_cast<impl::ShallowNode<T, slab> *>(c);
-        index = current->index;
-        if (current->next) {
-          type = current->next_type;
-          c = current->next;
-          index = current->index;
-          goto start;
-        }
-      }
-    }
-    return iterator(c, index, type);
+    //   impl::Type type = impl::Type::STATIC;
+    //   void *c = m_node;
+    //   size_t index = 0;
+    // start:
+    //   if (c) {
+    //     if (type == impl::Type::STATIC) {
+    //       auto current = static_cast<impl::StaticNode<T, slab> *>(c);
+    //       index = current->index;
+    //       if (current->next) {
+    //         type = current->next_type;
+    //         c = current->next;
+    //         index = current->index;
+    //         goto start;
+    //       }
+    //     } else {
+    //       auto current = static_cast<impl::ShallowNode<T, slab> *>(c);
+    //       index = current->index;
+    //       if (current->next) {
+    //         type = current->next_type;
+    //         c = current->next;
+    //         index = current->index;
+    //         goto start;
+    //       }
+    //     }
+    //   }
+    //   return iterator(c, index, type);
+    return iterator(nullptr, 0, impl::Type::STATIC);
   } // end()
 
 }; // class ArrayList
@@ -232,6 +233,8 @@ public:
   }
 
   bool operator==(const SelfType &o) const {
+    // printf("%p == %p && %u == %u\n", m_iterator, o.m_iterator, m_index,
+    // o.m_index);
     return (m_iterator == o.m_iterator && m_index == o.m_index);
   }
 
@@ -240,14 +243,13 @@ public:
   }
 
   SelfType &operator++() {
+    m_index++;
     if (m_type == impl::Type::STATIC) {
       auto node = static_cast<impl::StaticNode<T, N> *>(m_iterator);
       if (m_index == node->index) {
         m_iterator = node->next;
         m_index = 0;
         m_type = node->next_type;
-      } else {
-        m_index++;
       }
     } else {
       auto node = static_cast<impl::ShallowNode<T, N> *>(m_iterator);
@@ -255,8 +257,6 @@ public:
         m_iterator = node->next;
         m_index = 0;
         m_type = node->next_type;
-      } else {
-        m_index++;
       }
     }
     return *this;
