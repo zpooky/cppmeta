@@ -83,13 +83,17 @@ public:
   }
 
   StepType operator()(Token &, StepType start) const {
-    for (const auto &current : file.defines) {
+    auto begin = file.defines.begin();
+    auto end = file.defines.end();
+    for (auto it = begin; it != end; ++it) {
       // printf("%s == %s\n", current.key.token.c_str(),
       // (*start.it).token.c_str());
+      auto &current = *it;
       if (current.key == *start.it) {
+        start.it.add(current.values);
         // TODO make better
         // (*start.it).token = current.values[0].token;
-        start.replace(current.values);
+        // start.replace(current.values);
         break;
       }
     }

@@ -34,9 +34,11 @@ struct StaticNode {
   T ptr[slab];
   void *next;
   size_t index;
+  size_t length;
   impl::Type next_type;
 
-  StaticNode() : next(nullptr), index(0), next_type(impl::Type::STATIC) {
+  StaticNode()
+      : next(nullptr), index(0), length(slab), next_type(impl::Type::STATIC) {
   }
 
   ~StaticNode() {
@@ -56,6 +58,14 @@ struct ShallowNode {
   ShallowNode()
       : ptr(nullptr), next(nullptr), index(0), length(0),
         next_type(impl::Type::STATIC), gc(false) {
+  }
+
+  ShallowNode(T *p_ptr, size_t p_idx, size_t p_length, bool p_gc)
+      : ShallowNode() {
+    ptr = p_ptr;
+    index = p_idx;
+    length = p_length;
+    gc = p_gc;
   }
 
   ~ShallowNode() {
@@ -110,7 +120,7 @@ private:
   start:
     if (type == impl::Type::STATIC) {
       auto current = static_cast<impl::StaticNode<T, slab> *>(c);
-      if (current->index == slab) {
+      if (current->index == current->length) {
         if (current->next == nullptr) {
           current->next = new impl::StaticNode<T, slab>;
           if (current->next == nullptr) {
@@ -230,6 +240,63 @@ public:
 
   ArrayListIterator(ArrayList<T, N> &a)
       : ArrayListIterator(a.m_node, 0, impl::Type::STATIC) {
+  }
+
+  template <typename Collection>
+  bool replace(const Collection &col) {
+    return true;
+  }
+
+  template <typename Collection>
+  bool add(const Collection &col) {
+    if (m_type == impl::Type::STATIC) {
+      auto node = static_cast<impl::StaticNode<T, N> *>(m_iterator);
+      auto col_it = col.begin();
+
+      auto next = node->next;
+      auto next_type = node->next_type;
+      if (m_index != node->length) {
+        auto ptr = node->ptr + m_index;
+        size_t idx = node->index - m_index;
+        size_t length = node->length - m_index;
+        bool gc = false;
+        auto tmp = new impl::ShallowNode<T, N>(ptr, idx, length, gc);
+
+        if (tmp == nullptr) {
+          return false;
+        }
+        tmp->next = next;
+        tmp->next_type = next_type;
+
+        next = tmp;
+        next_type = impl::Type::SHALLOW;
+      }
+
+    start:
+      auto new_next = new impl::StaticNode<T, N>;
+      if (new_next == nullptr) {
+        // TODO
+        return false;
+      }
+
+      node->next = new_next;
+      node->next_type = impl::Type::STATIC;
+      node = new_next;
+
+      for (; col_it != col.end(); ++col_it) {
+        if (node->index == node->length) {
+          goto start;
+        }
+        T *dest = node->ptr + node->index++;
+        dest->~T();
+        new (dest) T(std::forward<decltype(*col_it)>(*col_it));
+      }
+
+      node->next = next;
+      node->next_type = next_type;
+    } else {
+    }
+    return true;
   }
 
   bool operator==(const SelfType &o) const {
