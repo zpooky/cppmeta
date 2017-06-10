@@ -33,9 +33,9 @@ int main() {
       auto ppTokens = pre.parse(tokens, fileAST);
 
       std::cout << "\n\n####" << f.name.c_str() << "\n\n";
-      // for (const auto &token : tokens) {
-      // std::cout << token.to_string() << "\n";
-      // }
+      for (const auto &token : tokens) {
+        std::cout << token.to_string() << "\n";
+      }
       std::cout << "\n";
 
       ast::Parser parser;

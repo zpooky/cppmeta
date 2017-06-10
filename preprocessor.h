@@ -90,9 +90,9 @@ public:
       // (*start.it).token.c_str());
       auto &current = *it;
       if (current.key == *start.it) {
-        start.it.add(current.values);
-        // TODO make better
         // (*start.it).token = current.values[0].token;
+        start.it.replace(current.values);
+        // TODO make better
         // start.replace(current.values);
         break;
       }
