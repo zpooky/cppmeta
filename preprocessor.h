@@ -86,14 +86,9 @@ public:
     auto begin = file.defines.begin();
     auto end = file.defines.end();
     for (auto it = begin; it != end; ++it) {
-      // printf("%s == %s\n", current.key.token.c_str(),
-      // (*start.it).token.c_str());
       auto &current = *it;
       if (current.key == *start.it) {
-        // (*start.it).token = current.values[0].token;
         start.it.replace(current.values);
-        // TODO make better
-        // start.replace(current.values);
         break;
       }
     }
@@ -128,7 +123,10 @@ private:
       if (result.valid) {
         current = result;
       } else {
-        res.push_back(*current.it);
+        if ((*current.it).token != "") {
+          // TODO fix it.replace()
+          res.push_back(*current.it);
+        }
         current = StepType(current.it + 1, current.end, true);
       }
       goto start;

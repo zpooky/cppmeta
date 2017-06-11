@@ -33,7 +33,7 @@ int main() {
       auto ppTokens = pre.parse(tokens, fileAST);
 
       std::cout << "\n\n####" << f.name.c_str() << "\n\n";
-      for (const auto &token : tokens) {
+      for (const auto &token : ppTokens) {
         std::cout << token.to_string() << "\n";
       }
       std::cout << "\n";
@@ -41,8 +41,8 @@ int main() {
       ast::Parser parser;
       parser.parse(ppTokens, fileAST);
 
-      auto current = fileAST.to_yaml();
-      std::cout << current.to_string() << "\n";
+      // auto current = fileAST.to_yaml();
+      // std::cout << current.to_string() << "\n";
 
     } catch (const Token &t) {
       std::cerr << "error:" << t.to_string() << "\n";

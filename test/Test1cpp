@@ -12,6 +12,8 @@
   ddd {                                                                        \
   }
 
+#define NOTHING
+
 class TestBase { //
 };
 
@@ -83,3 +85,7 @@ class TestSub18 {};
 ASD TestDefine{};
 
 class SP_DDD_CLASS;
+
+NOTHING class NOTHING nothing {NOTHING
+//   NOTHING NOTHING
+}NOTHING ;NOTHING

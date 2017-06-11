@@ -247,16 +247,68 @@ public:
     auto col_it = col.begin();
     auto end = col.end();
 
-    if (m_type == impl::Type::STATIC) {
-      auto node = static_cast<impl::StaticNode<T, N> *>(m_iterator);
-      node->ptr[m_index] = *col_it++;
-      return do_add(col_it, end, node);
+    if (col_it == end) {
+      if (m_type == impl::Type::STATIC) {
+        auto node = static_cast<impl::StaticNode<T, N> *>(m_iterator);
+        bool result = true;
+        if (m_index + 1 != node->length) {
+          result = do_split(m_index + 1, node);
+        }
+        if (result) {
+          node->index--;
+          node->ptr[node->index].~T();
+          new (node->ptr + node->index) T;
+        }
+        return result;
+      } else {
+        auto node = static_cast<impl::ShallowNode<T, N> *>(m_iterator);
+        bool result = true;
+        if (m_index + 1 != node->length) {
+          result = do_split(m_index + 1, node);
+        }
+        if (result) {
+          node->index--;
+          node->ptr[node->index].~T();
+          new (node->ptr + node->index) T;
+        }
+        return result;
+      }
     } else {
-      // TODO
+      if (m_type == impl::Type::STATIC) {
+        auto node = static_cast<impl::StaticNode<T, N> *>(m_iterator);
+        node->ptr[m_index] = *col_it++;
+        return do_add(col_it, end, node);
+      } else {
+        assert(false);
+        // TODO
+      }
     }
   }
 
 private:
+  template <typename Node>
+  bool do_split(size_t index_n, Node *node) {
+
+    auto ptr = node->ptr + index_n;
+    size_t idx = node->index - index_n;
+    size_t length = node->length - index_n;
+    bool gc = false;
+
+    auto tmp = new impl::ShallowNode<T, N>(ptr, idx, length, gc);
+    if (tmp == nullptr) {
+      return false;
+    }
+    tmp->next = node->next;
+    tmp->next_type = node->next_type;
+
+    node->next = tmp;
+    node->next_type = impl::Type::SHALLOW;
+
+    node->index = index_n;
+    node->length = index_n;
+    return true;
+  }
+
   template <typename It, typename Node>
   bool do_add(It col_it, It end, Node *node) {
     if (col_it == end) {
@@ -265,7 +317,7 @@ private:
     auto next = node->next;
     auto next_type = node->next_type;
 
-    auto index_n = m_index+1;
+    auto index_n = m_index + 1;
     if (index_n != node->length) {
       auto ptr = node->ptr + index_n;
       size_t idx = node->index - index_n;
@@ -289,7 +341,7 @@ private:
   start:
     auto new_next = new impl::StaticNode<T, N>;
     if (new_next == nullptr) {
-      // TODO
+      // TODO what if his happen on the second iteration
       return false;
     }
 
@@ -322,6 +374,7 @@ public:
     } else {
       auto node = static_cast<impl::ShallowNode<T, N> *>(m_iterator);
       // return do_add(col, node);
+      assert(false);
     }
     return true;
   }
@@ -338,19 +391,26 @@ public:
 
   SelfType &operator++() {
     m_index++;
-    if (m_type == impl::Type::STATIC) {
-      auto node = static_cast<impl::StaticNode<T, N> *>(m_iterator);
-      if (m_index >= node->index) {
-        m_iterator = node->next;
-        m_index = 0;
-        m_type = node->next_type;
-      }
-    } else {
-      auto node = static_cast<impl::ShallowNode<T, N> *>(m_iterator);
-      if (m_index >= node->index) {
-        m_iterator = node->next;
-        m_index = 0;
-        m_type = node->next_type;
+  start:
+    if (m_iterator) {
+      if (m_type == impl::Type::STATIC) {
+        auto node = static_cast<impl::StaticNode<T, N> *>(m_iterator);
+        if (m_index >= node->index) {
+          // printf("|%u|\n", node->index);
+          m_iterator = node->next;
+          m_index = 0;
+          m_type = node->next_type;
+          goto start;
+        }
+      } else {
+        auto node = static_cast<impl::ShallowNode<T, N> *>(m_iterator);
+        if (m_index >= node->index) {
+          // printf("|%u|\n", node->index);
+          m_iterator = node->next;
+          m_index = 0;
+          m_type = node->next_type;
+          goto start;
+        }
       }
     }
     return *this;

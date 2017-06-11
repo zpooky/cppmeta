@@ -27,6 +27,7 @@ struct Pattern : public match::Base<Token, Iterator> {
     }
 
     t = *it.it;
+    // printf("class: %s\n",t.token.c_str());
 
     auto next = it.it != it.end ? it.it + 1 : it.it;
     return match::Step<Iterator>(next, it.end, true);
