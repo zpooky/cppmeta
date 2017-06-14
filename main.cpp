@@ -38,11 +38,21 @@ int main() {
       }
       std::cout << "\n";
 
+      // using Iterator = sp::ArrayList<Token>::const_iterator;
       ast::Parser parser;
-      parser.parse(ppTokens, fileAST);
+      auto response = parser.parse(ppTokens.begin(), ppTokens.end(), fileAST);
+      if (!response.valid) {
+        std::cerr << "invalid error:" << (*response.it).token.c_str() << "\n";
+        exit(1);
+      }
 
-      // auto current = fileAST.to_yaml();
-      // std::cout << current.to_string() << "\n";
+      if (response.it != response.end) {
+        std::cerr << "not end error:" << (*response.it).token.c_str() << "\n";
+        exit(1);
+      }
+
+      auto current = fileAST.to_yaml();
+      std::cout << current.to_string() << "\n";
 
     } catch (const Token &t) {
       std::cerr << "error:" << t.to_string() << "\n";

@@ -6,10 +6,38 @@
 #include <vector>
 
 namespace ast {
+class ClassAST;
+class NamespaceAST;
 
 // enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
 
-struct NamespaceAST {};
+struct NamespaceAST {
+  Token key;
+  std::vector<NamespaceAST> namespaces;
+  std::vector<ClassAST> classes;
+
+  NamespaceAST() : key() {
+  }
+  NamespaceAST(const Token &p_key) : key(p_key) {
+  }
+
+  void push_back(const NamespaceAST &ast) {
+    namespaces.push_back(ast);
+  }
+  void push_back(const ClassAST &ast) {
+    classes.push_back(ast);
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml n;
+    n.push_back("classes", yaml::List(classes));
+    n.push_back("namespaces", yaml::List(namespaces));
+    yaml::yaml yaml;
+    yaml.push_back("token",key);
+    yaml.push_back("namespace",n);
+    return yaml;
+  }
+};
 
 struct FunctionAST {};
 
@@ -241,6 +269,7 @@ struct FileAST {
   std::vector<IncludeAST> includes;
   std::vector<DefineAST> defines;
   std::vector<IfNotDefinMacroAST> ifNotDefines;
+  std::vector<NamespaceAST> namespaces;
 
   void push_back(const IncludeAST &ast) {
     includes.push_back(ast);
@@ -258,11 +287,16 @@ struct FileAST {
     ifNotDefines.push_back(ast);
   }
 
+  void push_back(const NamespaceAST &ast) {
+    namespaces.push_back(ast);
+  }
+
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     result.push_back("includes", yaml::List(includes));
     result.push_back("defines", yaml::List(defines));
     result.push_back("classes", yaml::List(classes));
+    result.push_back("namespace", yaml::List(classes));
     return result;
   }
 };

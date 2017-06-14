@@ -38,8 +38,14 @@ template <typename Iterator>
 Pattern<Iterator> TypeName() {
   return {};
 }
+
 template <typename Iterator>
 Pattern<Iterator> VariableName() {
+  return {};
+}
+
+template <typename Iterator>
+Pattern<Iterator> NamespaceName() {
   return {};
 }
 

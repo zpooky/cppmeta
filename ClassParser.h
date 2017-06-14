@@ -135,7 +135,7 @@ public:
             .option(inherits, InheritanceParser<Iterator>())         //
             .step("{")                                               //
         ;
-    printf("%d\n", start.valid);
+    // printf("%d\n", start.valid);
 
     result = ClassAST(name, inherits, templates);
     if (start) {

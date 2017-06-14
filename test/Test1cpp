@@ -1,4 +1,4 @@
-//vim: set ft=cpp;
+// vim: set ft=cpp;
 
 #ifndef SP_TESSSST
 #define SP_TESSSST
@@ -14,8 +14,20 @@
 
 #define NOTHING
 
+namespace ns {
+namespace ns1 { //
+}
+namespace ns11 { //
+}
+namespace {
+//
+}
+}
+
+namespace {      /**/
 class TestBase { //
 };
+}
 
 class /**/ TestBase2 /*:*/ /**/ /*TestBase*/ /**/ { //
                                                     //}
@@ -79,13 +91,22 @@ class TestSub16 {};
 template <typename T, typename B = int>
 class TestSub17 {};
 
+namespace asd {
 template <int s = 1>
 class TestSub18 {};
 
+namespace ns1 {
+
 ASD TestDefine{};
+}
 
+namespace ns2 {
 class SP_DDD_CLASS;
+}
+}
 
-NOTHING class NOTHING nothing {NOTHING
-//   NOTHING NOTHING
-}NOTHING ;NOTHING
+NOTHING class NOTHING nothing {
+  NOTHING
+  //   NOTHING NOTHING
+} NOTHING;
+NOTHING

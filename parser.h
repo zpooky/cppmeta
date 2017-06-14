@@ -2,65 +2,86 @@
 #define SP_CPP_META_PARSER_H
 
 #include "ArrayList.h"
+#include "ClassParser.h"
+#include "Pattern.h"
 #include "ast.h"
 #include "matcher.h"
 #include "tokens.h"
 
+namespace {
+template <typename Iterator, typename AST>
+match::Step<Iterator> generic_scope_parse(Iterator, Iterator, AST &);
+}
+
 namespace ast {
 
-template <typename It>
-bool is_tokens(It, It);
+template <typename Iterator>
+class NamespaceParser {
+private:
+  using StepType = match::Step<Iterator>;
 
-template <typename It, typename Head, typename... Tails>
-bool is_tokens(It, It, const Head &, const Tails &...);
-
-template <typename It>
-bool is_tokens(It, It) {
-  return true;
-}
-
-template <typename It, typename Head, typename... Tails>
-bool is_tokens(It begin, It end, const Head &token, const Tails &... tail) {
-  bool valid(false);
-  if (begin != end) {
-    valid = *begin == token;
+public:
+  NamespaceParser() {
   }
-  return valid && is_tokens(begin + 1, end, tail...);
-}
 
-template <typename Iterator>
-bool is_class(Iterator begin, Iterator end) {
-  return is_tokens(begin, end, "class");
-}
-
-template <typename Iterator>
-bool is_include(Iterator begin, Iterator end) {
-  return is_tokens(begin, end, "#", "include");
-}
-
-template <typename Iterator>
-bool is_define(Iterator begin, Iterator end) {
-  return is_tokens(begin, end, "#", "define");
-}
-
-template <typename Iterator>
-bool is_struct(Iterator begin, Iterator end) {
-  return is_tokens(begin, end, "typedef", "struct") ||
-         is_tokens(begin, end, "struct");
-}
-
-template <typename Iterator>
-bool is_function_declaration(Iterator it, Iterator end) {
-  return false;
-}
+  StepType parse(Iterator begin, Iterator end, NamespaceAST &capture) {
+    Token ns;
+    auto s = match::start(begin, end)                   //
+                 .step("namespace")                     //
+                 .option(ns, NamespaceName<Iterator>()) //
+                 .step("{");                            //
+    if (s) {
+      capture = NamespaceAST(ns);
+      return generic_scope_parse(s.it, s.end, capture) //
+          .step("}");
+    }
+    return s;
+  }
+};
 
 class Parser {
 public:
   Parser() {
   }
 
-  void parse(sp::ArrayList<Token> &, FileAST &);
+  template <typename Iterator>
+  match::Step<Iterator> parse(Iterator it, Iterator end, FileAST &result) {
+    return generic_scope_parse(it, end, result);
+  } // Parse::parse
 };
+}
+
+namespace {
+template <typename Iterator, typename AST>
+match::Step<Iterator> generic_scope_parse(Iterator it, Iterator end,
+                                          AST &result) {
+  while (it != end) {
+    auto begin = it++;
+
+    {
+      ast::ClassParser<Iterator> parser;
+      ast::ClassAST ast;
+      match::Step<Iterator> next = parser.parse(begin, end, ast);
+      if (next.valid) {
+        result.push_back(ast);
+        it = next;
+        continue;
+      }
+    }
+    {
+      ast::NamespaceParser<Iterator> parser;
+      ast::NamespaceAST ast;
+      match::Step<Iterator> next = parser.parse(begin, end, ast);
+      if (next.valid) {
+        result.push_back(ast);
+        it = next;
+        continue;
+      }
+    }
+    return match::Step<Iterator>(begin, end, true);
+  }
+  return match::Step<Iterator>(it, end, true);
+}
 }
 
 #endif
