@@ -24,10 +24,15 @@ namespace {
 }
 }
 
-namespace {      /**/
+namespace dd { /**/
+namespace xx {
 class TestBase { //
 };
 }
+}
+using namespace dd::xx;
+
+using dd::xx::TestBase;
 
 class /**/ TestBase2 /*:*/ /**/ /*TestBase*/ /**/ { //
                                                     //}

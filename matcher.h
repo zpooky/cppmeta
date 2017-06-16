@@ -7,8 +7,6 @@
 #include <utility>
 #include <vector>
 
-namespace ast {}
-
 namespace match {
 
 template <typename, typename>
@@ -90,6 +88,19 @@ public:
     return Step(it, end, false);
   }
 
+  // template <typename Function>
+  // SelfType step(Function f) {
+  //   if (valid) {
+  //     if (it != end) {
+  //       auto res = f(*it);
+  //       if (res) {
+  //         return Step(it + 1, end, true);
+  //       }
+  //     }
+  //   }
+  //   return Step(it, end, false);
+  // }
+
   // SelfType step(Token &token, const Pattern &p) {
   //   if (valid) {
   //     if (it != end) {
@@ -138,7 +149,9 @@ public:
     return SelfType(it, end, valid);
   }
 
-  SelfType option(const char *) = delete;
+  SelfType option(const char *constant) {
+    return option(String(constant));
+  }
   SelfType option(const String &constant) {
     if (valid) {
       if (it != end) {
@@ -218,6 +231,24 @@ public:
     return *this;
   }
 
+  template <typename Out, typename Function>
+  SelfType repeat(Out &out, Function f) {
+    SelfType current = *this;
+  start:
+    if (current.valid) {
+      typename Out::value_type capture;
+      SelfType result = f(capture, current);
+      if (result) {
+        out.push_back(capture);
+        current = result;
+        if (current.it != current.end) {
+          goto start;
+        }
+      }
+    }
+    return current;
+  }
+
   template <typename Function>
   SelfType repeat(Function f, const String &separator) {
     SelfType current = *this;
@@ -256,15 +287,17 @@ public:
     return current;
   }
 
+  template <typename... Function>
+  SelfType either(Function... f) {
+    return this;
+  }
+
   operator Iterator() {
     return it;
   }
 
   operator bool() {
     return valid;
-  }
-
-  void replace(const std::vector<Token>&){
   }
 }; // class Step
 
@@ -290,7 +323,7 @@ Step<Iterator> either(Step<Iterator> s, Function first, Function2 second) {
     }
   }
   return Step<Iterator>(s.it, s.end, false);
-}
+} // either()
 
 template <typename T, typename Iterator>
 class Base {

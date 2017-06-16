@@ -6,8 +6,10 @@
 #include <vector>
 
 namespace ast {
-class ClassAST;
-class NamespaceAST;
+struct ClassAST;
+struct NamespaceAST;
+struct UsingNamespaceAST;
+struct UsingAliasAST;
 
 // enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
 
@@ -15,6 +17,8 @@ struct NamespaceAST {
   Token key;
   std::vector<NamespaceAST> namespaces;
   std::vector<ClassAST> classes;
+  std::vector<UsingNamespaceAST> usingNamespaces;
+  std::vector<UsingAliasAST> usingAlias;
 
   NamespaceAST() : key() {
   }
@@ -24,17 +28,29 @@ struct NamespaceAST {
   void push_back(const NamespaceAST &ast) {
     namespaces.push_back(ast);
   }
+
   void push_back(const ClassAST &ast) {
     classes.push_back(ast);
+  }
+
+  void push_back(const UsingNamespaceAST &ast) {
+    usingNamespaces.push_back(ast);
+  }
+
+  void push_back(const UsingAliasAST &ast) {
+    usingAlias.push_back(ast);
   }
 
   yaml::yaml to_yaml() const {
     yaml::yaml n;
     n.push_back("classes", yaml::List(classes));
     n.push_back("namespaces", yaml::List(namespaces));
+    n.push_back("using-namespace", yaml::List(usingNamespaces));
+    n.push_back("using-alias", yaml::List(usingAlias));
+
     yaml::yaml yaml;
-    yaml.push_back("token",key);
-    yaml.push_back("namespace",n);
+    yaml.push_back("token", key);
+    yaml.push_back("namespace", n);
     return yaml;
   }
 };
@@ -91,8 +107,33 @@ public:
   }
 };
 
-/*UsingAST*/
-struct UsingAST {};
+/*UsingAliasAST*/
+// ex: using alias = concrete
+struct UsingAliasAST {
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
+/*UsingNamespaceAST*/
+// ex: using namespace std
+struct UsingNamespaceAST {
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+/*UsingType*/
+//ex: using std::String
+struct UsingTypeAST {
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
 
 struct FunctionInvocationAST {
 
@@ -132,6 +173,7 @@ struct Named {
       : name(p_name) {
   }
 };
+namespace tmp {
 enum class Type { TYPED, NAMED };
 struct TypenameAST {
   Typed typed;
@@ -153,22 +195,27 @@ struct TypenameAST {
         type(Type::NAMED) {
   }
 };
+}
 
 /*TypeIdentifier*/
+// ex: Typename<T,int>
 struct TypeIdentifier {
   Token name;
-  std::vector<TypenameAST> templates;
+  std::vector<tmp::TypenameAST> templates;
+  std::vector<Token> namespaces;
 
   TypeIdentifier() //
-      : TypeIdentifier(Token(), {}) {
+      : TypeIdentifier(Token(), {}, {}) {
   }
 
-  TypeIdentifier(const Token &n, const std::vector<TypenameAST> &t)
-      : name(n), templates(t) {
+  TypeIdentifier(const Token &n, const std::vector<tmp::TypenameAST> &t,
+                 const std::vector<Token> nss)
+      : name(n), templates(t), namespaces(nss) {
   }
 };
 
 /*InheritanceAST*/
+// ex: public virtual Typename<int>
 struct InheritanceAST {
   Token scope;
   Token virt;
@@ -200,7 +247,8 @@ struct ScopeAST {
   std::vector<FunctionPointerAST> functionPointers;
   StaticAST staticAST;
   std::vector<TypedefAST> typdefs;
-  std::vector<UsingAST> usings;
+  std::vector<UsingNamespaceAST> usingNamespaces;
+  std::vector<UsingAliasAST> usingAlias;
 
   yaml::yaml to_yaml() const {
     yaml::yaml result;
@@ -209,10 +257,14 @@ struct ScopeAST {
 };
 
 /*ClassAST*/
+// ex:
+// template<int = 1, T>
+// class Typename : public T<int>,private asd {
+//...
 struct ClassAST {
   Token name;
   std::vector<InheritanceAST> inherits;
-  std::vector<TypenameAST> templates;
+  std::vector<tmp::TypenameAST> templates;
 
   DestructorAST dtorAST;
   /**/
@@ -227,7 +279,7 @@ struct ClassAST {
   }
 
   ClassAST(const Token &p_name, const std::vector<InheritanceAST> &p_inherits,
-           const std::vector<TypenameAST> &p_templates)
+           const std::vector<tmp::TypenameAST> &p_templates)
       : name(p_name),              //
         inherits(p_inherits),      //
         templates(p_templates),    //
@@ -269,6 +321,8 @@ struct FileAST {
   std::vector<IncludeAST> includes;
   std::vector<DefineAST> defines;
   std::vector<IfNotDefinMacroAST> ifNotDefines;
+  std::vector<UsingNamespaceAST> usingNamespaces;
+  std::vector<UsingAliasAST> usingAlias;
   std::vector<NamespaceAST> namespaces;
 
   void push_back(const IncludeAST &ast) {
@@ -287,6 +341,14 @@ struct FileAST {
     ifNotDefines.push_back(ast);
   }
 
+  void push_back(const UsingNamespaceAST &ast) {
+    usingNamespaces.push_back(ast);
+  }
+
+  void push_back(const UsingAliasAST &ast) {
+    usingAlias.push_back(ast);
+  }
+
   void push_back(const NamespaceAST &ast) {
     namespaces.push_back(ast);
   }
@@ -296,6 +358,8 @@ struct FileAST {
     result.push_back("includes", yaml::List(includes));
     result.push_back("defines", yaml::List(defines));
     result.push_back("classes", yaml::List(classes));
+    result.push_back("using-namespace", yaml::List(usingNamespaces));
+    result.push_back("using-alias", yaml::List(usingAlias));
     result.push_back("namespace", yaml::List(classes));
     return result;
   }

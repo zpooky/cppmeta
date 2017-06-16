@@ -1,10 +1,11 @@
 #ifndef SP_CPP_META_CLASS_PARSER_H
 #define SP_CPP_META_CLASS_PARSER_H
 
-#include "ExpressionParser.h"
 #include "Pattern.h"
+#include "TemplateParser.h"
 #include "ast.h"
 #include "matcher.h"
+
 #include <stdio.h>
 
 namespace ast {
@@ -59,89 +60,33 @@ public:
 }; // InheritanceParser
 
 template <typename Iterator>
-class TypenameParser : public match::Base<std::vector<TypenameAST>, Iterator> {
-  using StepType = match::Step<Iterator>;
-
-public:
-  StepType operator()(std::vector<TypenameAST> &, StepType start) const {
-    return match::either(start,
-                         [&](StepType it) -> StepType { //
-                           Token t;
-                           Token type;
-                           ExpressionAST exp;
-                           return it                                          //
-                               .step(t, match::Either({"class", "typename"})) //
-                               .option(type, TypeName<Iterator>())            //
-                               .option([&](StepType s) {
-                                 return s
-                                     .step("=") //
-                                     .step(exp, ExpressionParser<Iterator>());
-                               });
-
-                         },
-                         [&](StepType it) -> StepType { //
-                           TypeIdentifier type;
-                           Token name;
-                           ExpressionAST exp;
-                           return it                                         //
-                               .step(type, TypeIdentifierParser<Iterator>()) //
-                               .step(name, VariableName<Iterator>())         //
-                               .option([&](StepType s) {
-                                 return s
-                                     .step("=") //
-                                     .step(exp, ExpressionParser<Iterator>());
-                               });
-                         });
-  }
-}; // TypenamedParser
-
-template <typename Iterator>
-class TemplateParser : public match::Base<std::vector<TypenameAST>, Iterator> {
-  using StepType = match::Step<Iterator>;
-
-public:
-  TemplateParser() {
-  }
-
-  match::Step<Iterator> operator()(std::vector<TypenameAST> &result,
-                                   match::Step<Iterator> step) const {
-    return step                                          //
-        .step("template")                                //
-        .step("<")                                       //
-        .repeat(result, TypenameParser<Iterator>(), ",") //
-        .step(">");
-  } // templated
-};  // TemplateParser
-
-template <typename Iterator>
-class ClassParser {
+class ClassParser : public match::Base<ClassAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType parse(Iterator begin, Iterator end, ClassAST &result) {
+  StepType operator()(ClassAST &result, StepType start) const {
     Token typeQualifier;
     // match::Either qualifier({"class", "struct"});
     Token name;
 
     std::vector<InheritanceAST> inherits;
-    std::vector<TypenameAST> templates;
+    std::vector<tmp::TypenameAST> templates;
 
-    match::Step<Iterator> start =
-        match::start(begin, end)                                     //
+    match::Step<Iterator> begin =
+        start
             .option(templates, TemplateParser<Iterator>())           //
             .step(typeQualifier, match::Either({"class", "struct"})) //
             .step(name, TypeName<Iterator>())                        //
             .option(inherits, InheritanceParser<Iterator>())         //
-            .step("{")                                               //
-        ;
+            .step("{");
     // printf("%d\n", start.valid);
 
     result = ClassAST(name, inherits, templates);
-    if (start) {
+    if (begin) {
       Token scope;
       match::Either scopes_match({"public", "private", "protected"});
-      auto scopeStart = start                          //
+      auto scopeStart = begin                          //
                             .step(scope, scopes_match) //
                             .step(":");
       if (!scopeStart) {
@@ -152,7 +97,7 @@ public:
       // ScopeAST scope_ast = scope.parse(it, end);
       // class_ast.push_back(scope, scope_ast);
     }
-    return start.step("}").step(";");
+    return begin.step("}").step(";");
   }
 }; // ClassParser
 } // namespace ast

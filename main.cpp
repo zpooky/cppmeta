@@ -5,6 +5,8 @@
 #include <initializer_list>
 #include <iostream>
 
+using Iterator = sp::ArrayList<Token>::const_iterator;
+
 int main() {
   std::vector<String> files = {"./tokenizer.cpp", "./tokenizer.h", "./String.h",
                                "./entities.h",    "./main.cpp",    "./parser.h",
@@ -38,9 +40,9 @@ int main() {
       }
       std::cout << "\n";
 
-      // using Iterator = sp::ArrayList<Token>::const_iterator;
+      match::Step<Iterator> start(ppTokens.begin(), ppTokens.end());
       ast::Parser parser;
-      auto response = parser.parse(ppTokens.begin(), ppTokens.end(), fileAST);
+      auto response = parser.parse(fileAST, start);
       if (!response.valid) {
         std::cerr << "invalid error:" << (*response.it).token.c_str() << "\n";
         exit(1);

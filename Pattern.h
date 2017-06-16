@@ -9,7 +9,9 @@ namespace ast {
 
 template <typename Iterator>
 struct Pattern : public match::Base<Token, Iterator> {
-  match::Step<Iterator> operator()(Token &t, match::Step<Iterator> it) const {
+  using StepType = match::Step<Iterator>;
+
+  StepType operator()(Token &t, StepType it) const {
     if (it.valid) {
       if (it.it != it.end) {
         for (const char *keyword : cpp::keywords) {
@@ -30,7 +32,7 @@ struct Pattern : public match::Base<Token, Iterator> {
     // printf("class: %s\n",t.token.c_str());
 
     auto next = it.it != it.end ? it.it + 1 : it.it;
-    return match::Step<Iterator>(next, it.end, true);
+    return StepType(next, it.end, true);
   }
 };
 
@@ -49,16 +51,31 @@ Pattern<Iterator> NamespaceName() {
   return {};
 }
 
+//ex: ns::
+template <typename Iterator>
+struct NsParser : public match::Base<Token, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+  StepType operator()(Token &ns, StepType it) const {
+    return it     //
+        .step(ns) //
+        .step("::");
+  }
+};
+
+//ex: ns::ns::Type<T,int>
 template <typename Iterator>
 struct TypeIdentifierParser : public match::Base<TypeIdentifier, Iterator> {
 
-  match::Step<Iterator> operator()(TypeIdentifier &result,
-                                   match::Step<Iterator> it) const {
-    Pattern<Iterator> p;
+  using StepType = match::Step<Iterator>;
+
+  StepType operator()(TypeIdentifier &result, StepType it) const {
+    std::vector<Token> namespaces;
     Token t;
-    auto next = p(t, it);
+    auto next = it.repeat(namespaces, NsParser<Iterator>()) //
+                    .step(t, TypeName<Iterator>());
     if (next) {
-      result = TypeIdentifier(t, {});
+      result = TypeIdentifier(t, {}, namespaces);
     }
     return next;
   }
