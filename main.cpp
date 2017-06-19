@@ -49,7 +49,7 @@ int main() {
       }
 
       if (response.it != response.end) {
-        std::cerr << "not end error:" << (*response.it).token.c_str() << "\n";
+        std::cerr << "not end error:" << (*response.it).to_string() << "\n";
         exit(1);
       }
 
@@ -63,7 +63,3 @@ int main() {
   return 0;
 }
 
-struct CompilationUnit {
-  //  \ |  /
-  //  file
-};

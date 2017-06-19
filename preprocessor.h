@@ -12,17 +12,17 @@ namespace ast {
 
 template <typename Iterator>
 class IfNotDefineMacroParser
-    : public match::Base<IfNotDefinMacroAST, Iterator> {
+    : public match::Base<pp::IfNotDefinMacroAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
 
 public:
   // IfNotDefineMacroParser(std::stack<MacroCondition>
-  StepType operator()(IfNotDefinMacroAST &capture, StepType start) const {
+  StepType operator()(pp::IfNotDefinMacroAST &capture, StepType start) const {
     Token key;
     auto inital = start.step("#").step("ifndef").step(key);
     if (inital) {
-      capture = IfNotDefinMacroAST(key);
+      capture = pp::IfNotDefinMacroAST(key);
     }
     return inital;
   }
@@ -40,12 +40,12 @@ public:
 };
 
 template <typename Iterator>
-class DefineConstantParser : public match::Base<DefineAST, Iterator> {
+class DefineConstantParser : public match::Base<pp::DefineAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(DefineAST &capture, StepType start) const {
+  StepType operator()(pp::DefineAST &capture, StepType start) const {
     Token key;
     std::vector<Token> values;
     auto inital = start.step("#").step("define").step(key);
@@ -65,7 +65,7 @@ public:
         }
         current = StepType(current.it + 1, current.end, true);
       }
-      capture = DefineAST(key, values);
+      capture = pp::DefineAST(key, values);
       return current;
     }
     return inital;
@@ -158,12 +158,12 @@ public:
             });
         // printf("#####################%s\n", t.token.c_str());
         if (ret) {
-          result.push_back(IncludeAST(t));
+          result.push_back(pp::IncludeAST(t));
           return ret;
         }
       }
       {
-        DefineAST ast;
+        pp::DefineAST ast;
         auto ret = current.step(ast, DefineConstantParser<Iterator>());
         if (ret) {
           result.push_back(ast);
@@ -171,7 +171,7 @@ public:
         }
       }
       {
-        IfNotDefinMacroAST ast;
+        pp::IfNotDefinMacroAST ast;
         auto ret = current.step(ast, IfNotDefineMacroParser<Iterator>());
         if (ret) {
           result.push_back(ast);

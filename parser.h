@@ -24,11 +24,16 @@ private:
 public:
   StepType operator()(UsingNamespaceAST &capture, StepType start) const {
     std::vector<Token> nss;
-    return start
-        .step("using")                      //
-        .step("namespace")                  //
-        .repeat(nss, NsParser<Iterator>()) //
+    auto ret =  start
+        .step("using")                                //
+        .step("namespace")                            //
+        .repeat(nss, NamespaceName<Iterator>(), "::") //
         .step(";");
+
+    if(ret){
+      capture = UsingNamespaceAST(nss);
+    }
+    return ret;
   }
 };
 
@@ -39,12 +44,17 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(UsingTypeAST &capture, StepType start) {
+  StepType operator()(UsingTypeAST &capture, StepType start) const {
     TypeIdentifier alias;
-    return start
+    auto ret = start
         .step("using")                                 //
         .step(alias, TypeIdentifierParser<Iterator>()) //
         .step(";");
+
+    if(ret){
+      capture = UsingTypeAST(alias);
+    }
+    return ret;
   }
 };
 
@@ -58,16 +68,21 @@ private:
 
 public:
   StepType operator()(UsingAliasAST &capture, StepType start) const {
-    std::vector<tmp::TypenameAST> templates;
+    std::vector<tmp::TemplateTypenameAST> templates;
     TypeIdentifier alias;
     TypeIdentifier concrete;
-    return start
+    auto ret = start
         .option(templates, TemplateParser<Iterator>())    //
         .step("using")                                    //
         .step(alias, TypeIdentifierParser<Iterator>())    //
         .step("=")                                        //
         .step(concrete, TypeIdentifierParser<Iterator>()) //
         .step(";");
+
+    if(ret){
+      capture = UsingAliasAST(templates,alias,concrete);
+    }
+    return ret;
   }
 };
 
@@ -142,6 +157,15 @@ match::Step<Iterator> generic_scope(AST &result, match::Step<Iterator> start) {
     {
       ast::UsingAliasAST ast;
       auto next = start.step(ast, ast::UsingAliasParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    {
+      ast::UsingTypeAST ast;
+      auto next = start.step(ast, ast::UsingTypeParser<Iterator>());
       if (next.valid) {
         result.push_back(ast);
         start = next;

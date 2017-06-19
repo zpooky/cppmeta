@@ -71,7 +71,7 @@ public:
     Token name;
 
     std::vector<InheritanceAST> inherits;
-    std::vector<tmp::TypenameAST> templates;
+    std::vector<tmp::TemplateTypenameAST> templates;
 
     match::Step<Iterator> begin =
         start

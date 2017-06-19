@@ -136,6 +136,17 @@ public:
     return Step(it, end, valid);
   }
 
+  // SelfType option(const Either &e) {
+  //   if (valid) {
+  //     if (it != end) {
+  //       if (e.match(*it)) {
+  //         return Step(it + 1, end, valid);
+  //       }
+  //     }
+  //   }
+  //   return Step(it, end, valid);
+  // }
+
   template <typename Out>
   SelfType option(Out &out, const Base<Out, Iterator> &f) {
     if (valid) {
@@ -273,8 +284,10 @@ public:
     SelfType current = *this;
   start:
     if (current.valid) {
-      SelfType result = f(out, current);
+      typename Out::value_type capture;
+      SelfType result = f(capture, current);
       if (result) {
+        out.push_back(capture);
         current = result;
         if (current.it != current.end) {
           if (*current.it == separator) {

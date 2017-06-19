@@ -10,15 +10,159 @@ struct ClassAST;
 struct NamespaceAST;
 struct UsingNamespaceAST;
 struct UsingAliasAST;
+struct UsingTypeAST;
+struct TypeIdentifier;
+struct Type;
 
+/*TemplateAST*/
+struct Typed {
+  Token type;
+  Token name;
+
+  Typed() : type(), name() {
+  }
+
+  Typed(const Token &p_type, const Token &p_name) //
+      : type(p_type),
+        name(p_name) {
+  }
+};
+
+// struct Named {
+//   Token name;
+//
+//   Named() : name() {
+//   }
+//
+//   Named(const Token &p_name) //
+//       : name(p_name) {
+//   }
+// };
+
+// ex:
+struct TypedefAST {
+  //
+};
+} // namespace ast
+
+namespace pp {
+/*IncludeAST*/
+// ex: #include "asdads"
+struct IncludeAST {
+  Token file;
+  IncludeAST(const Token &p_file) : file(p_file) {
+  }
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("file", file);
+    return result;
+  }
+};
+
+/*DefineAST*/
+// ex: #define LABEL values ...
+struct DefineAST {
+  Token key;
+  std::vector<Token> values;
+
+  DefineAST(const Token &p_key, const std::vector<Token> &p_values)
+      : key(p_key), values(p_values) {
+  }
+
+  DefineAST() : key(), values() {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("key", key);
+    return result;
+  }
+};
+
+// ex: #ifndef key
+struct IfNotDefinMacroAST {
+public:
+  Token key;
+
+  IfNotDefinMacroAST() : IfNotDefinMacroAST(Token()) {
+  }
+
+  IfNotDefinMacroAST(const Token &p_key) : key(p_key) {
+  }
+};
+} // namespace pp
+
+namespace tmp {
+// ex: sp::ast::Type<t1,sp::t2>
+struct TypeArgumentAST {
+  Token named;
+  std::vector<ast::NamespaceAST> namespaces;
+  std::vector<TypeArgumentAST> typeArguments;
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("named", named);
+    result.push_back("namespaces", yaml::List(namespaces));
+    result.push_back("typeArguments", yaml::List(typeArguments));
+    return result;
+  }
+};
+
+enum class Type { TYPED, NAMED };
+// ex: Name<asd,asdasd<asdsdd,asdsad>>
+struct TemplateTypenameAST {
+  Token typed;
+  Token named;
+  std::vector<TemplateTypenameAST> templates;
+  Type type;
+
+  // ex: <size_t i>
+  // TODO: <adasdasd<aasdsad> i>
+  // TODO <size_t i = 1+1>
+  TemplateTypenameAST(const Token &p_type, const Token &p_name) //
+      : typed(p_type),
+        named(p_name),
+        templates{},
+        type(Type::TYPED) {
+  }
+
+  // ex: <Token>
+  TemplateTypenameAST(const Token &p_name) //
+      : typed(),
+        named{p_name},
+        templates(),
+        type(Type::NAMED) {
+  }
+
+  TemplateTypenameAST() //
+      : typed(),
+        named(),
+        templates(),
+        type(Type::NAMED) {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("typed", typed);
+    result.push_back("named", named);
+    result.push_back("templates", yaml::List(templates));
+    result.push_back("type",
+                     type == Type::TYPED ? String("TYPED") : String("NAMED"));
+    return result;
+  }
+};
+} // namespace tmp
+
+namespace ast {
 // enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
-
+// ex: namespace key { ... }
 struct NamespaceAST {
   Token key;
   std::vector<NamespaceAST> namespaces;
   std::vector<ClassAST> classes;
   std::vector<UsingNamespaceAST> usingNamespaces;
   std::vector<UsingAliasAST> usingAlias;
+  std::vector<UsingTypeAST> usingType;
 
   NamespaceAST() : key() {
   }
@@ -39,6 +183,10 @@ struct NamespaceAST {
 
   void push_back(const UsingAliasAST &ast) {
     usingAlias.push_back(ast);
+  }
+
+  void push_back(const UsingTypeAST &ast) {
+    usingType.push_back(ast);
   }
 
   yaml::yaml to_yaml() const {
@@ -75,60 +223,17 @@ struct MemberAST {};
 
 struct ExternalAST {};
 
-struct TypedefAST {};
-/*DefineAST*/
-
-struct DefineAST {
-  Token key;
-  std::vector<Token> values;
-
-  DefineAST(const Token &p_key, const std::vector<Token> &p_values)
-      : key(p_key), values(p_values) {
-  }
-
-  DefineAST() : key(), values() {
-  }
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    result.push_back("key", key);
-    return result;
-  }
-};
-
-struct IfNotDefinMacroAST {
-public:
-  Token key;
-
-  IfNotDefinMacroAST() : IfNotDefinMacroAST(Token()) {
-  }
-
-  IfNotDefinMacroAST(const Token &p_key) : key(p_key) {
-  }
-};
-
-/*UsingAliasAST*/
-// ex: using alias = concrete
-struct UsingAliasAST {
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    return result;
-  }
-};
-
 /*UsingNamespaceAST*/
 // ex: using namespace std
 struct UsingNamespaceAST {
+  std::vector<Token> namespaces;
 
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    return result;
+  UsingNamespaceAST() : namespaces() {
   }
-};
-/*UsingType*/
-//ex: using std::String
-struct UsingTypeAST {
+
+  UsingNamespaceAST(const std::vector<Token> &n) : namespaces(n) {
+  }
+
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     return result;
@@ -137,6 +242,16 @@ struct UsingTypeAST {
 
 struct FunctionInvocationAST {
 
+  //
+};
+
+/*TypeExpressionAST*/
+struct TypeExpressionAST {
+  std::vector<Token> tokens;
+
+  template <typename... Tail>
+  TypeExpressionAST(Tail &&... tail) : tokens{std::forward<Token>(tail)...} {
+  }
   //
 };
 
@@ -149,68 +264,53 @@ struct ExpressionAST {
   }
   //
 };
-/*TemplateAST*/
-struct Typed {
-  Token type;
-  Token name;
-
-  Typed() : type(), name() {
-  }
-
-  Typed(const Token &p_type, const Token &p_name) //
-      : type(p_type),
-        name(p_name) {
-  }
-};
-
-struct Named {
-  Token name;
-
-  Named() : name() {
-  }
-
-  Named(const Token &p_name) //
-      : name(p_name) {
-  }
-};
-namespace tmp {
-enum class Type { TYPED, NAMED };
-struct TypenameAST {
-  Typed typed;
-  Named named;
-  std::vector<TypenameAST> m_templates;
-  Type type;
-
-  TypenameAST(const Token &p_type, const Token &p_name) //
-      : typed{p_type, p_name},
-        named(),
-        m_templates{},
-        type(Type::TYPED) {
-  }
-
-  TypenameAST(const Token &p_name) //
-      : typed(),
-        named{p_name},
-        m_templates(),
-        type(Type::NAMED) {
-  }
-};
-}
 
 /*TypeIdentifier*/
-// ex: Typename<T,int>
+// ex: sp::Type<T,int>
 struct TypeIdentifier {
   Token name;
-  std::vector<tmp::TypenameAST> templates;
+  std::vector<tmp::TypeArgumentAST> templates;
   std::vector<Token> namespaces;
 
   TypeIdentifier() //
       : TypeIdentifier(Token(), {}, {}) {
   }
 
-  TypeIdentifier(const Token &n, const std::vector<tmp::TypenameAST> &t,
+  TypeIdentifier(const Token &n, const std::vector<tmp::TypeArgumentAST> &t,
                  const std::vector<Token> nss)
       : name(n), templates(t), namespaces(nss) {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("name", name);
+    result.push_back("templates", yaml::List(templates));
+    result.push_back("namespaces", yaml::List(namespaces));
+    return result;
+  }
+};
+
+/*UsingAliasAST*/
+// ex: using alias = concrete
+struct UsingAliasAST {
+  std::vector<tmp::TemplateTypenameAST> templates;
+  TypeIdentifier alias;
+  TypeIdentifier concrete;
+
+  UsingAliasAST() : templates(), alias(), concrete() {
+  }
+
+  UsingAliasAST(const std::vector<tmp::TemplateTypenameAST> &t,
+                const TypeIdentifier &a, const TypeIdentifier &c)
+      : templates(t), alias(a), concrete(c) {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("templates", yaml::List(templates));
+    result.push_back("alias", alias);
+    result.push_back("concrete", concrete);
+    return result;
   }
 };
 
@@ -230,6 +330,24 @@ struct InheritanceAST {
     result.push_back("scope", scope);
     result.push_back("virtual", virt);
     result.push_back("name", name.name);
+    return result;
+  }
+};
+
+/*UsingType*/
+// ex: using std::String
+struct UsingTypeAST {
+  TypeIdentifier alias;
+
+  UsingTypeAST() : alias() {
+  }
+
+  explicit UsingTypeAST(const TypeIdentifier &a) : alias(a) {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("alias", alias);
     return result;
   }
 };
@@ -259,12 +377,11 @@ struct ScopeAST {
 /*ClassAST*/
 // ex:
 // template<int = 1, T>
-// class Typename : public T<int>,private asd {
-//...
+// class Typename : public T<int>,private asd { ... }
 struct ClassAST {
   Token name;
   std::vector<InheritanceAST> inherits;
-  std::vector<tmp::TypenameAST> templates;
+  std::vector<tmp::TemplateTypenameAST> templates;
 
   DestructorAST dtorAST;
   /**/
@@ -279,7 +396,7 @@ struct ClassAST {
   }
 
   ClassAST(const Token &p_name, const std::vector<InheritanceAST> &p_inherits,
-           const std::vector<tmp::TypenameAST> &p_templates)
+           const std::vector<tmp::TemplateTypenameAST> &p_templates)
       : name(p_name),              //
         inherits(p_inherits),      //
         templates(p_templates),    //
@@ -301,31 +418,23 @@ struct ClassAST {
     return result;
   }
 };
-/*IncludeAST*/
 
-struct IncludeAST {
-  Token file;
-  IncludeAST(const Token &p_file) : file(p_file) {
-  }
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    result.push_back("file", file);
-    return result;
-  }
-};
+} // namespace ast
 
+namespace ast {
 /*FileAST*/
 struct FileAST {
   std::vector<ClassAST> classes;
   // preprocess
-  std::vector<IncludeAST> includes;
-  std::vector<DefineAST> defines;
-  std::vector<IfNotDefinMacroAST> ifNotDefines;
+  std::vector<pp::IncludeAST> includes;
+  std::vector<pp::DefineAST> defines;
+  std::vector<pp::IfNotDefinMacroAST> ifNotDefines;
   std::vector<UsingNamespaceAST> usingNamespaces;
   std::vector<UsingAliasAST> usingAlias;
+  std::vector<UsingTypeAST> usingType;
   std::vector<NamespaceAST> namespaces;
 
-  void push_back(const IncludeAST &ast) {
+  void push_back(const pp::IncludeAST &ast) {
     includes.push_back(ast);
   }
 
@@ -333,11 +442,11 @@ struct FileAST {
     classes.push_back(ast);
   }
 
-  void push_back(const DefineAST &ast) {
+  void push_back(const pp::DefineAST &ast) {
     defines.push_back(ast);
   }
 
-  void push_back(const IfNotDefinMacroAST &ast) {
+  void push_back(const pp::IfNotDefinMacroAST &ast) {
     ifNotDefines.push_back(ast);
   }
 
@@ -347,6 +456,10 @@ struct FileAST {
 
   void push_back(const UsingAliasAST &ast) {
     usingAlias.push_back(ast);
+  }
+
+  void push_back(const UsingTypeAST &ast) {
+    usingType.push_back(ast);
   }
 
   void push_back(const NamespaceAST &ast) {
