@@ -122,15 +122,12 @@ class TemplatedClass {};
 
 // template <sd::TemplatedClass<int> &asd>
 // class TemplatedClassRef {};
-//
-// template <int asd = 3>
-// class templatedclassint {};
-//
-// // template <auto asd>
-// // class TemplatedClassAuto {};
-//
-// template <int *asd>
-// class templatedclassPtr {};
+
+template <int asd = 3>
+class templatedclassint {};
+
+template <int *asd>
+class templatedclassPtr {};
 
 // template <int **asd>
 // class templatedclassPtrPtr {};

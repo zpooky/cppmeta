@@ -42,17 +42,18 @@ public:
           ExpressionAST exp;
           Token ref;
           // ex: std::Type<wasd<asd>>& label
-          // ex: int i = 1
           auto ret = it                                                //
                          .step(type, TypeIdentifierParser<Iterator>()) //
-                         // .step(ref, match::Either({"&", "*", "**"}))   //
-                         .step(name, VariableName<Iterator>()) //
-                         .option([&](StepType s) {
-                           return s
-                               .step("=") //
-                               .step(exp, ExpressionParser<Iterator>());
-                         });
+                         .step(ref, match::Either({"&", "*"}))   //
+                         .option(name, VariableName<Iterator>()) //
+                         // .option([&](StepType s) {
+                         //   return s
+                         //       .step("=") //
+                         //       .step(exp, ExpressionParser<Iterator>());
+                         // });
+                         ;
           if (ret) {
+            //TODO
             // capture = tmp::TemplateTypenameAST(type, name);
           }
           return ret;
@@ -71,6 +72,7 @@ public:
                                .step(exp, ExpressionParser<Iterator>());
                          });
           if (ret) {
+            // TODO
             // capture = tmp::TemplateTypenameAST(type, name);
           }
           return ret;
