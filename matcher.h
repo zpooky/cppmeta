@@ -300,10 +300,10 @@ public:
     return current;
   }
 
-  template <typename... Function>
-  SelfType either(Function... f) {
-    return this;
-  }
+  // template <typename... Function>
+  // SelfType either(Function... f) {
+  //   return this;
+  // }
 
   operator Iterator() {
     return it;
@@ -319,20 +319,20 @@ Step<Iterator> start(Iterator begin, Iterator end) {
   return Step<Iterator>(begin, end);
 }
 
-template <typename Iterator, typename Function, typename Function2>
-Step<Iterator> either(Step<Iterator> s, Function first, Function2 second) {
+template <typename Iterator>
+Step<Iterator> either(Step<Iterator> s) {
+  return Step<Iterator>(s.it, s.end, false);
+}
+
+template <typename Iterator, typename Function1, typename... Function>
+Step<Iterator> either(Step<Iterator> s, Function1 first, Function... tail) {
   if (s.valid) {
     {
       Step<Iterator> r = first(s);
       if (r) {
         return r;
       }
-    }
-    {
-      Step<Iterator> r = second(s);
-      if (r) {
-        return r;
-      }
+      return either(s, tail...);
     }
   }
   return Step<Iterator>(s.it, s.end, false);

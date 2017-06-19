@@ -13,6 +13,7 @@ struct UsingAliasAST;
 struct UsingTypeAST;
 struct TypeIdentifier;
 struct Type;
+struct EnumAST;
 
 /*TemplateAST*/
 struct Typed {
@@ -154,12 +155,15 @@ struct TemplateTypenameAST {
 } // namespace tmp
 
 namespace ast {
-// enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
 // ex: namespace key { ... }
 struct NamespaceAST {
   Token key;
+  // namespace
   std::vector<NamespaceAST> namespaces;
+  // type
   std::vector<ClassAST> classes;
+  std::vector<EnumAST> enums;
+  // using
   std::vector<UsingNamespaceAST> usingNamespaces;
   std::vector<UsingAliasAST> usingAlias;
   std::vector<UsingTypeAST> usingType;
@@ -175,6 +179,10 @@ struct NamespaceAST {
 
   void push_back(const ClassAST &ast) {
     classes.push_back(ast);
+  }
+
+  void push_back(const EnumAST &ast) {
+    enums.push_back(ast);
   }
 
   void push_back(const UsingNamespaceAST &ast) {
@@ -228,10 +236,12 @@ struct ExternalAST {};
 struct UsingNamespaceAST {
   std::vector<Token> namespaces;
 
-  UsingNamespaceAST() : namespaces() {
+  UsingNamespaceAST() //
+      : namespaces() {
   }
 
-  UsingNamespaceAST(const std::vector<Token> &n) : namespaces(n) {
+  UsingNamespaceAST(const std::vector<Token> &n) //
+      : namespaces(n) {
   }
 
   yaml::yaml to_yaml() const {
@@ -250,7 +260,8 @@ struct TypeExpressionAST {
   std::vector<Token> tokens;
 
   template <typename... Tail>
-  TypeExpressionAST(Tail &&... tail) : tokens{std::forward<Token>(tail)...} {
+  TypeExpressionAST(Tail &&... tail) //
+      : tokens{std::forward<Token>(tail)...} {
   }
   //
 };
@@ -260,9 +271,55 @@ struct ExpressionAST {
   std::vector<Token> tokens;
 
   template <typename... Tail>
-  ExpressionAST(Tail &&... tail) : tokens{std::forward<Token>(tail)...} {
+  ExpressionAST(Tail &&... tail) //
+      : tokens{std::forward<Token>(tail)...} {
   }
   //
+};
+
+struct EnumValueAST {
+  Token key;
+  ExpressionAST value;
+
+  EnumValueAST()
+      : //
+        key(),
+        value() {
+  }
+
+  EnumValueAST(const Token &k, const ExpressionAST &v) //
+      : key(k),
+        value(v) {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
+// enum class Incapsulation { PUBLIC, PRIVATE, PROTECTED };
+struct EnumAST {
+  Token typeName;
+  std::vector<EnumValueAST> values;
+
+  EnumAST()
+      : //
+        typeName(),
+        values() {
+  }
+
+  EnumAST(const Token &n, const std::vector<EnumValueAST> &v) //
+      : typeName(n),
+        values(v) {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("name", typeName);
+    result.push_back("values", yaml::List(values));
+    return result;
+  }
 };
 
 /*TypeIdentifier*/
@@ -425,21 +482,28 @@ namespace ast {
 /*FileAST*/
 struct FileAST {
   std::vector<ClassAST> classes;
+  std::vector<EnumAST> enums;
   // preprocess
   std::vector<pp::IncludeAST> includes;
   std::vector<pp::DefineAST> defines;
   std::vector<pp::IfNotDefinMacroAST> ifNotDefines;
+  // using
   std::vector<UsingNamespaceAST> usingNamespaces;
   std::vector<UsingAliasAST> usingAlias;
   std::vector<UsingTypeAST> usingType;
+  // namespace
   std::vector<NamespaceAST> namespaces;
-
-  void push_back(const pp::IncludeAST &ast) {
-    includes.push_back(ast);
-  }
 
   void push_back(const ClassAST &ast) {
     classes.push_back(ast);
+  }
+
+  void push_back(const EnumAST &ast) {
+    enums.push_back(ast);
+  }
+
+  void push_back(const pp::IncludeAST &ast) {
+    includes.push_back(ast);
   }
 
   void push_back(const pp::DefineAST &ast) {

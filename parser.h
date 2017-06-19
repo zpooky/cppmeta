@@ -7,6 +7,7 @@
 #include "ast.h"
 #include "matcher.h"
 #include "tokens.h"
+#include "EnumParser.h"
 
 namespace {
 template <typename Iterator, typename AST>
@@ -130,6 +131,15 @@ match::Step<Iterator> generic_scope(AST &result, match::Step<Iterator> start) {
     {
       ast::ClassAST ast;
       auto next = start.step(ast, ast::ClassParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    {
+      ast::EnumAST ast;
+      auto next = start.step(ast, ast::EnumParser<Iterator>());
       if (next.valid) {
         result.push_back(ast);
         start = next;

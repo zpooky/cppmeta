@@ -9,7 +9,8 @@
 namespace ast {
 
 template <typename Iterator>
-class TemplateTypenameParser : public match::Base<tmp::TemplateTypenameAST, Iterator> {
+class TemplateTypenameParser
+    : public match::Base<tmp::TemplateTypenameAST, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
@@ -31,8 +32,7 @@ public:
                                .step(exp, TypeExpressionParser<Iterator>());
                          });
           if (ret) {
-            // TODO
-            // capture = tmp::TypenameAST(type);
+            capture = tmp::TemplateTypenameAST(type);
           }
           return ret;
         },
@@ -40,20 +40,38 @@ public:
           TypeIdentifier type;
           Token name;
           ExpressionAST exp;
+          Token ref;
           // ex: std::Type<wasd<asd>>& label
           // ex: int i = 1
           auto ret = it                                                //
                          .step(type, TypeIdentifierParser<Iterator>()) //
-                         .step("&")                                    //
-                         .step(name, VariableName<Iterator>())         //
+                         // .step(ref, match::Either({"&", "*", "**"}))   //
+                         .step(name, VariableName<Iterator>()) //
                          .option([&](StepType s) {
                            return s
                                .step("=") //
                                .step(exp, ExpressionParser<Iterator>());
                          });
           if (ret) {
-            // TODO
-            // capture = tmp::TypenameAST(type, name);
+            // capture = tmp::TemplateTypenameAST(type, name);
+          }
+          return ret;
+        },
+        [&](StepType it) -> StepType {
+          // ex: int wasd = 1
+          Token type;
+          Token variable;
+          auto ret = it                                              //
+                         .step(type)                                //
+                         .option(variable, VariableName<Iterator>()) //
+                         .option([&](StepType s) {
+                           ExpressionAST exp;
+                           return s
+                               .step("=") //
+                               .step(exp, ExpressionParser<Iterator>());
+                         });
+          if (ret) {
+            // capture = tmp::TemplateTypenameAST(type, name);
           }
           return ret;
         });
@@ -69,8 +87,9 @@ public:
   TemplateParser() {
   }
 
-  match::Step<Iterator> operator()(std::vector<tmp::TemplateTypenameAST> &result,
-                                   match::Step<Iterator> step) const {
+  match::Step<Iterator>
+  operator()(std::vector<tmp::TemplateTypenameAST> &result,
+             match::Step<Iterator> step) const {
     return step                                                  //
         .step("template")                                        //
         .step("<")                                               //

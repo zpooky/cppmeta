@@ -31,7 +31,6 @@ class TestBase { //
 }
 }
 using namespace dd::xx;
-
 using dd::xx::TestBase;
 
 class /**/ TestBase2 /*:*/ /**/ /*TestBase*/ /**/ { //
@@ -118,36 +117,30 @@ NOTHING
 
 namespace sd {
 template <typename T = int>
-class TemplatedClass {
-  constexpr TemplatedClass() {
-  }
-
-  constexpr TemplatedClass(int i) {
-  }
-};
+class TemplatedClass {};
 }
 
-template <sd::TemplatedClass<int> &asd>
-class TemplatedClassRef {};
+// template <sd::TemplatedClass<int> &asd>
+// class TemplatedClassRef {};
+//
+// template <int asd = 3>
+// class templatedclassint {};
+//
+// // template <auto asd>
+// // class TemplatedClassAuto {};
+//
+// template <int *asd>
+// class templatedclassPtr {};
 
-template <int asd = 3>
-class templatedclassint {};
-
-// template <auto asd>
-// class TemplatedClassAuto {};
-
-template <int *asd>
-class templatedclassPtr {};
-
-template <int **asd>
-class templatedclassPtrPtr {};
-
-// template <auto asd>
-// class TemplatedClassAuto {};
+// template <int **asd>
+// class templatedclassPtrPtr {};
 
 enum class EnumType1 {
-  ONE,TWO
+  ONE,
+  TWO, //
+  THREE = 3,
+  FOUR
 };
 
-template <EnumType1 e = EnumType1::ONE>
-class templatedclassEnum {};
+// template <EnumType1 e = EnumType1::ONE>
+// class templatedclassEnum {};
