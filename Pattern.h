@@ -51,7 +51,7 @@ Pattern<Iterator> NamespaceName() {
   return {};
 }
 
-//ex: ns::
+// ex: ns::
 template <typename Iterator>
 struct NsParser : public match::Base<Token, Iterator> {
   using StepType = match::Step<Iterator>;
@@ -63,7 +63,24 @@ struct NsParser : public match::Base<Token, Iterator> {
   }
 };
 
-//ex: ns::ns::Type<T,int>
+template <typename Iterator>
+struct TypeIdentifierParser;
+
+template <typename Iterator>
+struct TypeArgumentParser
+    : public match::Base<std::vector<TypeIdentifier>, Iterator> {
+
+  using StepType = match::Step<Iterator>;
+
+  StepType operator()(std::vector<TypeIdentifier> &capture, StepType it) const {
+    return it                                                   //
+        .step("<")                                              //
+        .repeat(capture, TypeIdentifierParser<Iterator>(), ",") //
+        .step(">");
+  }
+};
+
+// ex: ns::ns::Type<T,int>
 template <typename Iterator>
 struct TypeIdentifierParser : public match::Base<TypeIdentifier, Iterator> {
 
@@ -72,10 +89,12 @@ struct TypeIdentifierParser : public match::Base<TypeIdentifier, Iterator> {
   StepType operator()(TypeIdentifier &result, StepType it) const {
     std::vector<Token> namespaces;
     Token t;
+    std::vector<TypeIdentifier> typeArguments;
     auto next = it.repeat(namespaces, NsParser<Iterator>()) //
-                    .step(t, TypeName<Iterator>());
+                    .step(t, TypeName<Iterator>())          //
+                    .option(typeArguments, TypeArgumentParser<Iterator>());
     if (next) {
-      result = TypeIdentifier(t, {}, namespaces);
+      result = TypeIdentifier(t, typeArguments, namespaces);
     }
     return next;
   }

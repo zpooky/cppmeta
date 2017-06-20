@@ -120,8 +120,8 @@ template <typename T = int>
 class TemplatedClass {};
 }
 
-// template <sd::TemplatedClass<int> &asd>
-// class TemplatedClassRef {};
+template <sd::TemplatedClass<int> &asd>
+class TemplatedClassRef {};
 
 template <int asd = 3>
 class templatedclassint {};
@@ -132,7 +132,7 @@ class templatedclassPtr {};
 // template <int **asd>
 // class templatedclassPtrPtr {};
 
-enum class EnumType1 {
+enum class EnumType1 : int {
   ONE,
   TWO, //
   THREE = 3,

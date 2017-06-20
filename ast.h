@@ -100,6 +100,19 @@ struct TypeArgumentAST {
   std::vector<ast::NamespaceAST> namespaces;
   std::vector<TypeArgumentAST> typeArguments;
 
+  TypeArgumentAST() //
+      : named(),
+        namespaces(),
+        typeArguments() {
+  }
+
+  TypeArgumentAST(const Token &n, const std::vector<ast::NamespaceAST> &nss,
+                  const std::vector<TypeArgumentAST> &ta) //
+      : named(n),
+        namespaces(nss),
+        typeArguments(ta) {
+  }
+
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     result.push_back("named", named);
@@ -118,8 +131,6 @@ struct TemplateTypenameAST {
   Type type;
 
   // ex: <size_t i>
-  // TODO: <adasdasd<aasdsad> i>
-  // TODO <size_t i = 1+1>
   TemplateTypenameAST(const Token &p_type, const Token &p_name) //
       : typed(p_type),
         named(p_name),
@@ -326,22 +337,22 @@ struct EnumAST {
 // ex: sp::Type<T,int>
 struct TypeIdentifier {
   Token name;
-  std::vector<tmp::TypeArgumentAST> templates;
+  std::vector<TypeIdentifier> typeArguments;
   std::vector<Token> namespaces;
 
   TypeIdentifier() //
       : TypeIdentifier(Token(), {}, {}) {
   }
 
-  TypeIdentifier(const Token &n, const std::vector<tmp::TypeArgumentAST> &t,
+  TypeIdentifier(const Token &n, const std::vector<TypeIdentifier> &t,
                  const std::vector<Token> nss)
-      : name(n), templates(t), namespaces(nss) {
+      : name(n), typeArguments(t), namespaces(nss) {
   }
 
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     result.push_back("name", name);
-    result.push_back("templates", yaml::List(templates));
+    result.push_back("templates", yaml::List(typeArguments));
     result.push_back("namespaces", yaml::List(namespaces));
     return result;
   }
@@ -471,6 +482,7 @@ struct ClassAST {
     dd.push_back("private", privateAST);
     dd.push_back("protected", protectedAST);
     dd.push_back("inherits", yaml::List(inherits));
+    dd.push_back("template", yaml::List(templates));
     result.push_back("class", dd);
     return result;
   }
