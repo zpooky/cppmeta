@@ -224,7 +224,13 @@ struct NamespaceAST {
 
 struct FunctionAST {};
 
-struct FunctionPointerAST {};
+struct FunctionPointerAST {
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
 
 struct OperatorAST {};
 
@@ -484,6 +490,21 @@ struct ClassAST {
     dd.push_back("inherits", yaml::List(inherits));
     dd.push_back("template", yaml::List(templates));
     result.push_back("class", dd);
+    return result;
+  }
+};
+
+//ex: const T (&x)[N]
+struct TemplateCArrayAST {
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
+struct ParameterAST {
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
     return result;
   }
 };

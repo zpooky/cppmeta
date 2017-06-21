@@ -127,7 +127,10 @@ template <int asd = 3>
 class templatedclassint {};
 
 template <int *asd>
-class templatedclassPtr {};
+class templatedclassPtr {
+  // int (&pa)[5];
+  // void (*pf)(int, int *, int a, sd::TemplatedClass<int>);
+};
 
 // template <int **asd>
 // class templatedclassPtrPtr {};
@@ -141,3 +144,9 @@ enum class EnumType1 : int {
 
 // template <EnumType1 e = EnumType1::ONE>
 // class templatedclassEnum {};
+
+// template <int (&pa)[5]>
+// struct TemplateClassArrayTypeParam {};
+//
+// template <void (*pf)(int, int *, int a, sd::TemplatedClass<int>)>
+// struct TemplateClassFunctionPointerTypeParam {};
