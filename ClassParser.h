@@ -65,7 +65,7 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(ClassAST &result, StepType start) const {
+  StepType operator()(ClassAST &capture, StepType start) const {
     Token typeQualifier;
     // match::Either qualifier({"class", "struct"});
     Token name;
@@ -73,31 +73,28 @@ public:
     std::vector<InheritanceAST> inherits;
     std::vector<tmp::TemplateTypenameAST> templates;
 
-    match::Step<Iterator> begin =
-        start
-            .option(templates, TemplateParser<Iterator>())           //
-            .step(typeQualifier, match::Either({"class", "struct"})) //
-            .step(name, TypeName<Iterator>())                        //
-            .option(inherits, InheritanceParser<Iterator>())         //
-            .step("{");
+    return start
+        .option(templates, TemplateParser<Iterator>())           //
+        .step(typeQualifier, match::Either({"class", "struct"})) //
+        .step(name, TypeName<Iterator>())                        //
+        .option(inherits, InheritanceParser<Iterator>())         //
+        .step("{")
+        .stepx([&](StepType it) {
+          match::Either scopes({"public", "private", "protected"});
+          Token scope;
+          auto scopeStart = it                       //
+                                .step(scope, scopes) //
+                                .step(":");
+          // return scopeStart;
+          capture = ClassAST(name, inherits, templates);
+          return it;
+        })         //
+        .step("}") //
+        .step(";");
     // printf("%d\n", start.valid);
 
-    result = ClassAST(name, inherits, templates);
-    if (begin) {
-      Token scope;
-      match::Either scopes_match({"public", "private", "protected"});
-      auto scopeStart = begin                          //
-                            .step(scope, scopes_match) //
-                            .step(":");
-      if (!scopeStart) {
-        // scope = Token("private");
-      }
-
-      // ScopeParser scope;
-      // ScopeAST scope_ast = scope.parse(it, end);
-      // class_ast.push_back(scope, scope_ast);
-    }
-    return begin.step("}").step(";");
+    // ScopeParser scope;
+    // ScopeAST scope_ast = scope.parse(it, end);
   }
 }; // ClassParser
 } // namespace ast

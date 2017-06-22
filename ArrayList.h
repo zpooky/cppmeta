@@ -412,6 +412,8 @@ public:
           goto start;
         }
       }
+    } else {
+      m_index = 0;
     }
     return *this;
   }

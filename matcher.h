@@ -88,18 +88,19 @@ public:
     return Step(it, end, false);
   }
 
-  // template <typename Function>
-  // SelfType step(Function f) {
-  //   if (valid) {
-  //     if (it != end) {
-  //       auto res = f(*it);
-  //       if (res) {
-  //         return Step(it + 1, end, true);
-  //       }
-  //     }
-  //   }
-  //   return Step(it, end, false);
-  // }
+  template <typename Function>
+  // typename std::enable_if<std::is_function<Function>::value, SelfType>
+  SelfType stepx(Function f) {
+    if (valid) {
+      if (it != end) {
+        SelfType res = f(*this);
+        if (res.valid) {
+          return res;
+        }
+      }
+    }
+    return SelfType(it, end, false);
+  }
 
   // SelfType step(Token &token, const Pattern &p) {
   //   if (valid) {
@@ -249,7 +250,7 @@ public:
     if (current.valid) {
       typename Out::value_type capture;
       SelfType result = f(capture, current);
-      if (result) {
+      if (result.valid) {
         out.push_back(capture);
         current = result;
         if (current.it != current.end) {
@@ -327,13 +328,11 @@ Step<Iterator> either(Step<Iterator> s) {
 template <typename Iterator, typename Function1, typename... Function>
 Step<Iterator> either(Step<Iterator> s, Function1 first, Function... tail) {
   if (s.valid) {
-    {
-      Step<Iterator> r = first(s);
-      if (r) {
-        return r;
-      }
-      return either(s, tail...);
+    Step<Iterator> r = first(s);
+    if (r) {
+      return r;
     }
+    return either(s, tail...);
   }
   return Step<Iterator>(s.it, s.end, false);
 } // either()
