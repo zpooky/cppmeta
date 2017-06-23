@@ -175,7 +175,9 @@ public:
     return SelfType(it, end, valid);
   }
 
-  SelfType option(Token &, const char *) = delete;
+  SelfType option(Token &t, const char *constant) {
+    return option(t, String(constant));
+  }
   SelfType option(Token &t, const String &constant) {
     if (valid) {
       if (it != end) {
@@ -244,7 +246,10 @@ public:
   }
 
   template <typename Out, typename Function>
-  SelfType repeat(Out &out, Function f) {
+  typename std::enable_if<!std::is_same<Function, String>::value,
+                          SelfType>::type
+      // SelfType
+      repeat(Out &out, Function f) {
     SelfType current = *this;
   start:
     if (current.valid) {
@@ -255,6 +260,24 @@ public:
         current = result;
         if (current.it != current.end) {
           goto start;
+        }
+      }
+    }
+    return current;
+  }
+
+  template <typename Out>
+  SelfType repeat(Out &out, const match::Either &either) {
+    SelfType current = *this;
+  start:
+    if (current.valid) {
+      if (current.it != current.end) {
+        if (either.match(*current.it)) {
+          out.push_back(*current.it);
+          current = SelfType(it + 1, end, true);
+          if (current.it != current.end) {
+            goto start;
+          }
         }
       }
     }

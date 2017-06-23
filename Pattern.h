@@ -28,18 +28,50 @@ struct Pattern : public match::Base<Token, Iterator> {
       }
     }
 
-    t = *it.it;
+    if (it.valid) {
+      if (it.it != it.end) {
+        t = *it.it;
+      }
+    }
     // printf("class: %s\n",t.token.c_str());
 
-    auto next = it.it != it.end ? it.it + 1 : it.it;
+    auto next = it.valid && it.it != it.end ? it.it + 1 : it.it;
     return StepType(next, it.end, true);
   }
 };
 
 template <typename Iterator>
-Pattern<Iterator> TypeName() {
-  return {};
-}
+struct TypeName : public match::Base<Token, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+  StepType operator()(Token &t, StepType it) const {
+    if (it.valid) {
+      if (it.it != it.end) {
+        for (const char *keyword : cpp::keywords) {
+          if (*it.it == keyword && *it.it != "void") {
+            return match::Step<Iterator>(it.it, it.end, false);
+          }
+        }
+        //
+        for (const char *s : cpp::symbols) {
+          if (*it.it == s) {
+            return match::Step<Iterator>(it.it, it.end, false);
+          }
+        }
+      }
+    }
+
+    if (it.valid) {
+      if (it.it != it.end) {
+        t = *it.it;
+      }
+    }
+    // printf("class: %s\n",t.token.c_str());
+
+    auto next = it.valid && it.it != it.end ? it.it + 1 : it.it;
+    return StepType(next, it.end, true);
+  }
+};
 
 template <typename Iterator>
 Pattern<Iterator> VariableName() {
@@ -48,6 +80,11 @@ Pattern<Iterator> VariableName() {
 
 template <typename Iterator>
 Pattern<Iterator> NamespaceName() {
+  return {};
+}
+
+template <typename Iterator>
+Pattern<Iterator> FunctionName() {
   return {};
 }
 

@@ -7,6 +7,7 @@
 #include "ast.h"
 #include "matcher.h"
 #include "tokens.h"
+#include "FunctionParser.h"
 #include "EnumParser.h"
 
 namespace {
@@ -176,6 +177,15 @@ match::Step<Iterator> generic_scope(AST &result, match::Step<Iterator> start) {
     {
       ast::UsingTypeAST ast;
       auto next = start.step(ast, ast::UsingTypeParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    {
+      ast::FunctionDefinitionAST ast;
+      auto next = start.step(ast, ast::FunctionDefinitionParser<Iterator>());
       if (next.valid) {
         result.push_back(ast);
         start = next;

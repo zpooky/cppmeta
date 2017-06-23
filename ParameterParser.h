@@ -8,36 +8,66 @@
 namespace ast {
 
 template <typename Iterator>
+class ParameterTypeParser : public match::Base<ParameterTypeAST, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  StepType operator()(ParameterTypeAST &capture, StepType start) const {
+    std::vector<Token> qualifiers;
+    TypeIdentifier type;
+    std::vector<Token> refs;
+    std::vector<Token> ptrs;
+    return start                                                  //
+        .repeat(qualifiers, match::Either({"const", "volatile"})) //
+        .step(type, TypeIdentifierParser<Iterator>())             //
+        .repeat(refs, match::Either({"&"}))                       //
+        .repeat(ptrs, match::Either({"*"}));
+  }
+};
+
+template <typename Iterator>
+class ParameterParser : public match::Base<ParameterAST, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  StepType operator()(ParameterAST &capture, StepType start) const {
+    ParameterTypeAST type;
+    Token name;
+    auto ret = start                                            //
+                   .step(type, ParameterTypeParser<Iterator>()) //
+                   .option(name, VariableName<Iterator>());
+    if (ret) {
+      capture = ParameterAST(type, name);
+    }
+    return ret;
+  }
+};
+
+template <typename Iterator>
 class FunctionPointerParser : public match::Base<FunctionPointerAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
 
 public:
   StepType operator()(FunctionPointerAST &capture, StepType start) const {
-    TypeIdentifier returnType;
+    ParameterTypeAST returnType;
     Token ref;
     Token name;
-    std::vector<Token> paramters;
+    std::vector<ParameterAST> paramters;
 
-    return start                                            //
-        .step(returnType, TypeIdentifierParser<Iterator>()) //
-        .step("(")                                          //
+    // ex: const Type<tt>* (*fp)(...)
+    return start                                           //
+        .step(returnType, ParameterTypeParser<Iterator>()) //
+        .step("(")                                         //
         // variable capture
         .step(ref, match::Either({"*", "&"})) //
         .step(name, TypeName<Iterator>())     //
         .step(")")                            //
         .step("(")                            //
         // parameters
-        .repeat(paramters,
-                [](ParameterAST &capture, StepType it) { //
-                  TypeIdentifier type;
-                  Token name;
-                  // TODO make more advanced
-                  return it                                         //
-                      .step(type, TypeIdentifierParser<Iterator>()) //
-                      .step(name, VariableName<Iterator>());
-                },
-                ",") //
+        .repeat(paramters, ParameterTypeParser<Iterator>(), ",") //
         .step(")");
     ;
   }

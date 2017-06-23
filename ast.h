@@ -166,6 +166,100 @@ struct TemplateTypenameAST {
 } // namespace tmp
 
 namespace ast {
+/*TypeIdentifier*/
+// ex: sp::Type<T,int>
+struct TypeIdentifier {
+  Token name;
+  std::vector<TypeIdentifier> typeArguments;
+  std::vector<Token> namespaces;
+
+  TypeIdentifier() //
+      : TypeIdentifier(Token(), {}, {}) {
+  }
+
+  TypeIdentifier(const Token &n, const std::vector<TypeIdentifier> &t,
+                 const std::vector<Token> nss)
+      : name(n), typeArguments(t), namespaces(nss) {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("name", name);
+    result.push_back("templates", yaml::List(typeArguments));
+    result.push_back("namespaces", yaml::List(namespaces));
+    return result;
+  }
+};
+
+struct ParameterTypeAST {
+  TypeIdentifier type;
+
+  ParameterTypeAST() //
+      : type() {
+  }
+
+  ParameterTypeAST(const TypeIdentifier &t) //
+      : type(t) {
+  }
+
+  //
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
+struct ParameterAST {
+  ParameterTypeAST type;
+  Token name;
+
+  ParameterAST() //
+      : type(),
+        name() {
+  }
+  ParameterAST(const ParameterTypeAST &t, Token &n) //
+      : type(t),
+        name(n) {
+  }
+  //
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
+struct FunctionDeclarationAST {
+  //
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
+struct FunctionDefinitionAST {
+  ParameterTypeAST returnType;
+  Token functionName;
+  std::vector<ParameterAST> parameters;
+
+  FunctionDefinitionAST() //
+      : returnType(),
+        functionName(),
+        parameters() {
+  }
+
+  FunctionDefinitionAST(const ParameterTypeAST &r, const Token n,
+                        const std::vector<ParameterAST> &p) //
+      : returnType(r),
+        functionName(n),
+        parameters(p) {
+  }
+  //
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
 // ex: namespace key { ... }
 struct NamespaceAST {
   Token key;
@@ -178,6 +272,9 @@ struct NamespaceAST {
   std::vector<UsingNamespaceAST> usingNamespaces;
   std::vector<UsingAliasAST> usingAlias;
   std::vector<UsingTypeAST> usingType;
+  //
+  std::vector<FunctionDefinitionAST> funtionDefinitions;
+  std::vector<FunctionDeclarationAST> functionDeclarations;
 
   NamespaceAST() : key() {
   }
@@ -206,6 +303,14 @@ struct NamespaceAST {
 
   void push_back(const UsingTypeAST &ast) {
     usingType.push_back(ast);
+  }
+
+  void push_back(const FunctionDefinitionAST &ast) {
+    funtionDefinitions.push_back(ast);
+  }
+
+  void push_back(const FunctionDeclarationAST &ast) {
+    functionDeclarations.push_back(ast);
   }
 
   yaml::yaml to_yaml() const {
@@ -269,7 +374,10 @@ struct UsingNamespaceAST {
 
 struct FunctionInvocationAST {
 
-  //
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
 };
 
 /*TypeExpressionAST*/
@@ -335,31 +443,6 @@ struct EnumAST {
     yaml::yaml result;
     result.push_back("name", typeName);
     result.push_back("values", yaml::List(values));
-    return result;
-  }
-};
-
-/*TypeIdentifier*/
-// ex: sp::Type<T,int>
-struct TypeIdentifier {
-  Token name;
-  std::vector<TypeIdentifier> typeArguments;
-  std::vector<Token> namespaces;
-
-  TypeIdentifier() //
-      : TypeIdentifier(Token(), {}, {}) {
-  }
-
-  TypeIdentifier(const Token &n, const std::vector<TypeIdentifier> &t,
-                 const std::vector<Token> nss)
-      : name(n), typeArguments(t), namespaces(nss) {
-  }
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    result.push_back("name", name);
-    result.push_back("templates", yaml::List(typeArguments));
-    result.push_back("namespaces", yaml::List(namespaces));
     return result;
   }
 };
@@ -494,15 +577,8 @@ struct ClassAST {
   }
 };
 
-//ex: const T (&x)[N]
+// ex: const T (&x)[N]
 struct TemplateCArrayAST {
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    return result;
-  }
-};
-
-struct ParameterAST {
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     return result;
@@ -526,6 +602,9 @@ struct FileAST {
   std::vector<UsingTypeAST> usingType;
   // namespace
   std::vector<NamespaceAST> namespaces;
+  //
+  std::vector<FunctionDefinitionAST> funtionDefinitions;
+  std::vector<FunctionDeclarationAST> functionDeclarations;
 
   void push_back(const ClassAST &ast) {
     classes.push_back(ast);
@@ -561,6 +640,14 @@ struct FileAST {
 
   void push_back(const NamespaceAST &ast) {
     namespaces.push_back(ast);
+  }
+
+  void push_back(const FunctionDefinitionAST &ast) {
+    funtionDefinitions.push_back(ast);
+  }
+
+  void push_back(const FunctionDeclarationAST &ast) {
+    functionDeclarations.push_back(ast);
   }
 
   yaml::yaml to_yaml() const {
