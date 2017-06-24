@@ -274,10 +274,8 @@ public:
       if (current.it != current.end) {
         if (either.match(*current.it)) {
           out.push_back(*current.it);
-          current = SelfType(it + 1, end, true);
-          if (current.it != current.end) {
-            goto start;
-          }
+          current = SelfType(current.it + 1, end, true);
+          goto start;
         }
       }
     }

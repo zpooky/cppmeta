@@ -388,6 +388,23 @@ struct NamespaceAST {
 struct FunctionAST {};
 
 struct FunctionPointerAST {
+  ParameterTypeAST returnType;
+  Token ref;
+  Token name;
+  std::vector<ParameterAST> paramters;
+  //
+  FunctionPointerAST()
+      : //
+        returnType(),
+        ref(), name(), paramters() {
+  }
+
+  FunctionPointerAST(const ParameterTypeAST &rt, const Token &r, const Token &n,
+                     const std::vector<ParameterAST> &p)
+      : //
+        returnType(rt),
+        ref(r), name(n), paramters(p) {
+  }
 
   yaml::yaml to_yaml() const {
     yaml::yaml result;

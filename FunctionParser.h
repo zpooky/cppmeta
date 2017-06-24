@@ -47,8 +47,9 @@ public:
     Token functionName;
     std::vector<ParameterAST> parameters;
     std::vector<Token> postfix;
+    bool pureVirtual = false;
 
-    auto ret = step                                                       //
+    auto ret = step                                               //
                    .option(templates, TemplateParser<Iterator>()) //
                    .repeat(prefix, match::Either({"friend", "inline", "virtual",
                                                   "static", "extern"}))  //
@@ -59,7 +60,16 @@ public:
                    .step(")")                                            //
                    .repeat(postfix, match::Either({"final", "const", "override",
                                                    "noexcept"})) //
-                   // .option([&](//= 0
+                   .option([&pureVirtual](StepType it) {         //
+                     auto ret = it                               //
+                                    .step("=")                   //
+                                    .step("0");
+                     if (ret) {
+                       pureVirtual = true;
+                     }
+                     return ret;
+
+                   })
                    .step(";") //
         ;
     if (ret) {
@@ -71,7 +81,7 @@ public:
 };
 
 // TODO operator, constructor,destructor
-    // void* operator new[](std::size_t) = delete;
+// void* operator new[](std::size_t) = delete;
 
 } // namespace ast
 

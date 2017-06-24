@@ -164,8 +164,8 @@ void function5(int, int f);
 void function6(int *f, int *);
 void function7(int &, int *f);
 
-// extern void extFunc0(int **f);
-// extern void extFunc1(int **f, int &&);
+extern void extFunc0(int **f);
+extern void extFunc1(int **f, int &&);
 
 // static void staticFunc0(int **f);
 // static void staticFunc1(int **f, int &&);

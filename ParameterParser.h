@@ -68,19 +68,25 @@ public:
     Token name;
     std::vector<ParameterAST> paramters;
 
+    // TODO member fp:
+    // double (SomeClass::*function)(double *x) const;
+    //#
     // ex: const Type<tt>* (*fp)(...)
-    return start                                           //
-        .step(returnType, ParameterTypeParser<Iterator>()) //
-        .step("(")                                         //
-        // variable capture
-        .step(ref, match::Either({"*", "&"})) //
-        .step(name, TypeName<Iterator>())     //
-        .step(")")                            //
-        .step("(")                            //
-        // parameters
-        .repeat(paramters, ParameterParser<Iterator>(), ",") //
-        .step(")");
-    ;
+    auto ret = start                                                  //
+                   .step(returnType, ParameterTypeParser<Iterator>()) //
+                   .step("(")                                         //
+                   // variable capture
+                   .step(ref, match::Either({"*", "&"})) //
+                   .step(name, TypeName<Iterator>())     //
+                   .step(")")                            //
+                   .step("(")                            //
+                   // parameters
+                   .repeat(paramters, ParameterParser<Iterator>(), ",") //
+                   .step(")");
+    if (ret) {
+      capture = FunctionPointerAST(returnType, ref, name, paramters);
+    }
+    return ret;
   }
 };
 
