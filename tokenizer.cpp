@@ -57,7 +57,7 @@ ITokenizer *BaseTokenizer::parse(LineMeta &line, TokenResult &result) {
 
       tokenizer = blockTokenizer.parse(line, result);
 
-    } else if (is_token(line, {"*/", "::", "==", "!=", "<=", ">=", "||", "&&", "--", "++" /*, "<<", ">>"*/})) {
+    } else if (is_token(line, {"*/", "::", "==", "!=", "<=", ">=", "||", /*"&&",*/ "--", "++" /*, "<<", ">>"*/})) {
       result.push_back(token);
       // assuming its only match 2 length token
       token.push_back(line.pop());

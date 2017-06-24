@@ -192,14 +192,24 @@ struct TypeIdentifier {
 };
 
 struct ParameterTypeAST {
+  std::vector<Token> qualifiers;
   TypeIdentifier type;
+  std::vector<Token> refs;
+  std::vector<Token> ptrs;
 
   ParameterTypeAST() //
-      : type() {
+      : qualifiers(),
+        type(),
+        refs(),
+        ptrs() {
   }
 
-  ParameterTypeAST(const TypeIdentifier &t) //
-      : type(t) {
+  ParameterTypeAST(const std::vector<Token> q, const TypeIdentifier &t,
+                   const std::vector<Token> &r, const std::vector<Token> &p) //
+      : qualifiers(q),
+        type(t),
+        refs(r),
+        ptrs(p) {
   }
 
   //
@@ -209,17 +219,43 @@ struct ParameterTypeAST {
   }
 };
 
+/*TypeExpressionAST*/
+struct TypeExpressionAST {
+  std::vector<Token> tokens;
+
+  template <typename... Tail>
+  TypeExpressionAST(Tail &&... tail) //
+      : tokens{std::forward<Token>(tail)...} {
+  }
+  //
+};
+
+/*ExpressionAST*/
+struct ExpressionAST {
+  std::vector<Token> tokens;
+
+  template <typename... Tail>
+  ExpressionAST(Tail &&... tail) //
+      : tokens{std::forward<Token>(tail)...} {
+  }
+  //
+};
+
 struct ParameterAST {
   ParameterTypeAST type;
   Token name;
+  ExpressionAST defaultValue;
 
   ParameterAST() //
       : type(),
-        name() {
+        name(),
+        defaultValue() {
   }
-  ParameterAST(const ParameterTypeAST &t, Token &n) //
+  ParameterAST(const ParameterTypeAST &t, const Token &n,
+               const ExpressionAST &dv) //
       : type(t),
-        name(n) {
+        name(n),
+        defaultValue(dv) {
   }
   //
   yaml::yaml to_yaml() const {
@@ -229,7 +265,29 @@ struct ParameterAST {
 };
 
 struct FunctionDeclarationAST {
+  std::vector<tmp::TemplateTypenameAST> templates;
+  std::vector<Token> prefix;
+  ParameterTypeAST returnType;
+  Token functionName;
+  std::vector<ParameterAST> parameters;
+  std::vector<Token> postfix;
   //
+  FunctionDeclarationAST()
+      : //
+        templates(),
+        prefix(), returnType(), functionName(), parameters(), postfix() {
+  }
+
+  FunctionDeclarationAST(const std::vector<tmp::TemplateTypenameAST> &t,
+                         const std::vector<Token> &pre,
+                         const ParameterTypeAST &ret, const Token &n,
+                         const std::vector<ParameterAST> &params,
+                         const std::vector<Token> &post)
+      : //
+        templates(t),
+        prefix(pre), returnType(ret), functionName(n), parameters(params),
+        postfix(post) {
+  }
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     return result;
@@ -378,28 +436,6 @@ struct FunctionInvocationAST {
     yaml::yaml result;
     return result;
   }
-};
-
-/*TypeExpressionAST*/
-struct TypeExpressionAST {
-  std::vector<Token> tokens;
-
-  template <typename... Tail>
-  TypeExpressionAST(Tail &&... tail) //
-      : tokens{std::forward<Token>(tail)...} {
-  }
-  //
-};
-
-/*ExpressionAST*/
-struct ExpressionAST {
-  std::vector<Token> tokens;
-
-  template <typename... Tail>
-  ExpressionAST(Tail &&... tail) //
-      : tokens{std::forward<Token>(tail)...} {
-  }
-  //
 };
 
 struct EnumValueAST {

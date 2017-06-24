@@ -1,6 +1,7 @@
 #ifndef SP_CPP_META_PARAMETER_PARSER_H
 #define SP_CPP_META_PARAMETER_PARSER_H
 
+#include "ExpressionParser.h"
 #include "Pattern.h"
 #include "ast.h"
 #include "matcher.h"
@@ -18,11 +19,15 @@ public:
     TypeIdentifier type;
     std::vector<Token> refs;
     std::vector<Token> ptrs;
-    return start                                                  //
-        .repeat(qualifiers, match::Either({"const", "volatile"})) //
-        .step(type, TypeIdentifierParser<Iterator>())             //
-        .repeat(refs, match::Either({"&"}))                       //
-        .repeat(ptrs, match::Either({"*"}));
+    auto ret = start                                                         //
+                   .repeat(qualifiers, match::Either({"const", "volatile"})) //
+                   .step(type, TypeIdentifierParser<Iterator>())             //
+                   .repeat(refs, match::Either({"&"}))                       //
+                   .repeat(ptrs, match::Either({"*"}));
+    if (ret) {
+      capture = ParameterTypeAST(qualifiers, type, refs, ptrs);
+    }
+    return ret;
   }
 };
 
@@ -35,11 +40,17 @@ public:
   StepType operator()(ParameterAST &capture, StepType start) const {
     ParameterTypeAST type;
     Token name;
+    ExpressionAST v;
     auto ret = start                                            //
                    .step(type, ParameterTypeParser<Iterator>()) //
-                   .option(name, VariableName<Iterator>());
+                   .option(name, VariableName<Iterator>())      //
+                   .option([&](StepType it) {                   //
+                     return it                                  //
+                         .step("=")                             //
+                         .step(v, ExpressionParser<Iterator>());
+                   }); //
     if (ret) {
-      capture = ParameterAST(type, name);
+      capture = ParameterAST(type, name, v);
     }
     return ret;
   }
@@ -67,7 +78,7 @@ public:
         .step(")")                            //
         .step("(")                            //
         // parameters
-        .repeat(paramters, ParameterTypeParser<Iterator>(), ",") //
+        .repeat(paramters, ParameterParser<Iterator>(), ",") //
         .step(")");
     ;
   }

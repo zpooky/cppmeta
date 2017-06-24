@@ -192,6 +192,15 @@ match::Step<Iterator> generic_scope(AST &result, match::Step<Iterator> start) {
         continue;
       }
     }
+    {
+      ast::FunctionDeclarationAST ast;
+      auto next = start.step(ast, ast::FunctionDeclarationParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
     return start;
   }
   return start;
