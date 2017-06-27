@@ -14,7 +14,9 @@ class FunctionDefinitionParser
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(FunctionDefinitionAST &capture, StepType step) const {
+  using capture_type = FunctionDefinitionAST;
+
+  StepType operator()(capture_type &capture, StepType step) const {
     // TODO
     // int f2(std::string str) noexcept try
     // {
@@ -35,7 +37,9 @@ class FunctionDeclarationParser
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(FunctionDeclarationAST &capture, StepType step) const {
+  using capture_type = FunctionDeclarationAST;
+
+  StepType operator()(capture_type &capture, StepType step) const {
     // TODO
     // int f(int a = 7, int *p = nullptr, int (*(*x)(double))[3] = nullptr);
     // int printf(const char* fmt, ...);
@@ -68,13 +72,13 @@ public:
                        pureVirtual = true;
                      }
                      return ret;
-
                    })
                    .step(";") //
         ;
     if (ret) {
-      capture = FunctionDeclarationAST(templates, prefix, returnType,
-                                       functionName, parameters, postfix);
+      capture =
+          FunctionDeclarationAST(templates, prefix, returnType, functionName,
+                                 parameters, postfix, pureVirtual);
     }
     return ret;
   }

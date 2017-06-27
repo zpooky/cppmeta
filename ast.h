@@ -271,22 +271,24 @@ struct FunctionDeclarationAST {
   Token functionName;
   std::vector<ParameterAST> parameters;
   std::vector<Token> postfix;
+  bool pureVirtual;
   //
   FunctionDeclarationAST()
       : //
         templates(),
-        prefix(), returnType(), functionName(), parameters(), postfix() {
+        prefix(), returnType(), functionName(), parameters(), postfix(),
+        pureVirtual(false) {
   }
 
   FunctionDeclarationAST(const std::vector<tmp::TemplateTypenameAST> &t,
                          const std::vector<Token> &pre,
                          const ParameterTypeAST &ret, const Token &n,
                          const std::vector<ParameterAST> &params,
-                         const std::vector<Token> &post)
+                         const std::vector<Token> &post, bool pv)
       : //
         templates(t),
         prefix(pre), returnType(ret), functionName(n), parameters(params),
-        postfix(post) {
+        postfix(post), pureVirtual(pv) {
   }
   yaml::yaml to_yaml() const {
     yaml::yaml result;

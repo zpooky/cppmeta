@@ -89,7 +89,8 @@ public:
   }
 
   template <typename Function>
-  // typename std::enable_if<std::is_function<Function>::value, SelfType>
+  // typename std::enable_if<!std::is_same<String, Function>::value,
+  // SelfType>::type
   SelfType stepx(Function f) {
     if (valid) {
       if (it != end) {

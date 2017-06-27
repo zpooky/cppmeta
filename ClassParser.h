@@ -15,6 +15,8 @@ class InheritanceParser
   using StepType = match::Step<Iterator>;
 
 public:
+  using capture_type = std::vector<InheritanceAST>; 
+
   StepType operator()(std::vector<InheritanceAST> &result,
                       StepType step) const {
     return step    //
@@ -65,6 +67,8 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
+  using capture_type = ClassAST;
+
   StepType operator()(ClassAST &capture, StepType start) const {
     Token typeQualifier;
     // match::Either qualifier({"class", "struct"});

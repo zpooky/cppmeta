@@ -24,15 +24,17 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
+  using capture_type = UsingNamespaceAST;
+
   StepType operator()(UsingNamespaceAST &capture, StepType start) const {
     std::vector<Token> nss;
-    auto ret =  start
-        .step("using")                                //
-        .step("namespace")                            //
-        .repeat(nss, NamespaceName<Iterator>(), "::") //
-        .step(";");
+    auto ret = start
+                   .step("using")                                //
+                   .step("namespace")                            //
+                   .repeat(nss, NamespaceName<Iterator>(), "::") //
+                   .step(";");
 
-    if(ret){
+    if (ret) {
       capture = UsingNamespaceAST(nss);
     }
     return ret;
@@ -46,14 +48,16 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
+  using capture_type = UsingTypeAST;
+
   StepType operator()(UsingTypeAST &capture, StepType start) const {
     TypeIdentifier alias;
     auto ret = start
-        .step("using")                                 //
-        .step(alias, TypeIdentifierParser<Iterator>()) //
-        .step(";");
+                   .step("using")                                 //
+                   .step(alias, TypeIdentifierParser<Iterator>()) //
+                   .step(";");
 
-    if(ret){
+    if (ret) {
       capture = UsingTypeAST(alias);
     }
     return ret;
@@ -69,20 +73,22 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(UsingAliasAST &capture, StepType start) const {
+  using capture_type = UsingAliasAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
     std::vector<tmp::TemplateTypenameAST> templates;
     TypeIdentifier alias;
     TypeIdentifier concrete;
     auto ret = start
-        .option(templates, TemplateParser<Iterator>())    //
-        .step("using")                                    //
-        .step(alias, TypeIdentifierParser<Iterator>())    //
-        .step("=")                                        //
-        .step(concrete, TypeIdentifierParser<Iterator>()) //
-        .step(";");
+                   .option(templates, TemplateParser<Iterator>())    //
+                   .step("using")                                    //
+                   .step(alias, TypeIdentifierParser<Iterator>())    //
+                   .step("=")                                        //
+                   .step(concrete, TypeIdentifierParser<Iterator>()) //
+                   .step(";");
 
-    if(ret){
-      capture = UsingAliasAST(templates,alias,concrete);
+    if (ret) {
+      capture = UsingAliasAST(templates, alias, concrete);
     }
     return ret;
   }
@@ -95,10 +101,9 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
-  NamespaceParser() {
-  }
+  using capture_type = NamespaceAST;
 
-  StepType operator()(NamespaceAST &capture, StepType start) const {
+  StepType operator()(capture_type &capture, StepType start) const {
     Token ns;
     auto s = start
                  .step("namespace")                     //

@@ -11,7 +11,9 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(EnumValueAST &capture, StepType start) const {
+  using capture_type = EnumValueAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
     Token key;
     ExpressionAST value;
     auto ret = start          //
@@ -32,7 +34,9 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(EnumAST &capture, StepType start) const {
+  using capture_type = EnumAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
     Token typeName;
     TypeIdentifier underlyingType;
     auto ret =
