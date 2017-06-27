@@ -273,23 +273,24 @@ struct FunctionDeclarationAST {
   std::vector<ParameterAST> parameters;
   std::vector<Token> postfix;
   bool pureVirtual;
+  bool deleted;
   //
   FunctionDeclarationAST()
       : //
         templates(),
         prefix(), returnType(), functionName(), parameters(), postfix(),
-        pureVirtual(false) {
+        pureVirtual(false), deleted(false) {
   }
 
   FunctionDeclarationAST(const std::vector<tmp::TemplateTypenameAST> &t,
                          const std::vector<Token> &pre,
                          const ParameterTypeAST &ret, const Token &n,
                          const std::vector<ParameterAST> &params,
-                         const std::vector<Token> &post, bool pv)
+                         const std::vector<Token> &post, bool pv, bool dd)
       : //
         templates(t),
         prefix(pre), returnType(ret), functionName(n), parameters(params),
-        postfix(post), pureVirtual(pv) {
+        postfix(post), pureVirtual(pv), deleted(dd) {
   }
   yaml::yaml to_yaml() const {
     yaml::yaml result;
@@ -406,27 +407,27 @@ struct NamespaceAST {
 
   /*operator*/
   void push_back(const OperatorDefinitionAST &ast) {
-    //TODO
+    // TODO
   }
 
   void push_back(const OperatorDeclarationAST &ast) {
-    //TODO
+    // TODO
   }
   /*ctor*/
   void push_back(const CtorDefinitionAST &ast) {
-    //TODO
+    // TODO
   }
 
   void push_back(const CtorDeclarationAST &ast) {
-    //TODO
+    // TODO
   }
   /*dtor*/
   void push_back(const DtorDefinitionAST &ast) {
-    //TODO
+    // TODO
   }
 
   void push_back(const DtorDeclarationAST &ast) {
-    //TODO
+    // TODO
   }
 
   yaml::yaml to_yaml() const {
@@ -768,27 +769,27 @@ struct FileAST {
   }
   /*operator*/
   void push_back(const OperatorDefinitionAST &ast) {
-    //TODO
+    // TODO
   }
 
   void push_back(const OperatorDeclarationAST &ast) {
-    //TODO
+    // TODO
   }
   /*ctor*/
   void push_back(const CtorDefinitionAST &ast) {
-    //TODO
+    // TODO
   }
 
   void push_back(const CtorDeclarationAST &ast) {
-    //TODO
+    // TODO
   }
   /*dtor*/
   void push_back(const DtorDefinitionAST &ast) {
-    //TODO
+    // TODO
   }
 
   void push_back(const DtorDeclarationAST &ast) {
-    //TODO
+    // TODO
   }
 
   yaml::yaml to_yaml() const {

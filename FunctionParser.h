@@ -56,6 +56,7 @@ public:
     std::vector<ParameterAST> parameters;
     std::vector<Token> postfix;
     bool pureVirtual = false;
+    bool deleted = false;
 
     auto ret = step                                               //
                    .option(templates, TemplateParser<Iterator>()) //
@@ -67,13 +68,15 @@ public:
                    .repeat(parameters, ParameterParser<Iterator>(), ",") //
                    .step(")")                                            //
                    .repeat(postfix, match::Either({"final", "const", "override",
-                                                   "noexcept"})) //
-                   .option([&pureVirtual](StepType it) {         //
-                     auto ret = it                               //
-                                    .step("=")                   //
-                                    .step("0");
+                                                   "noexcept"}))   //
+                   .option([&pureVirtual, &deleted](StepType it) { //
+                     Token end;
+                     auto ret = it             //
+                                    .step("=") //
+                                    .step(end, match::Either({"0", "delete"}));
                      if (ret) {
-                       pureVirtual = true;
+                       pureVirtual = end == "0";
+                       deleted = end == "delete";
                      }
                      return ret;
                    })
@@ -82,7 +85,7 @@ public:
     if (ret) {
       capture =
           FunctionDeclarationAST(templates, prefix, returnType, functionName,
-                                 parameters, postfix, pureVirtual);
+                                 parameters, postfix, pureVirtual, deleted);
     }
     return ret;
   }
@@ -107,7 +110,7 @@ public:
     std::vector<ParameterAST> paramters;
     std::vector<Token> postfix;
     // TODO create ast
-    return start //
+    return start                                           //
         .option(templates, TemplateParser<Iterator>())     //
         .option(virtualOp, "virtual")                      //
         .step(returnType, ParameterTypeParser<Iterator>()) //
@@ -134,7 +137,7 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO
-    return StepType(start.it,start.end,false);
+    return StepType(start.it, start.end, false);
   }
 };
 
@@ -148,7 +151,7 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO
-    return StepType(start.it,start.end,false);
+    return StepType(start.it, start.end, false);
   }
 };
 
@@ -162,7 +165,7 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO
-    return StepType(start.it,start.end,false);
+    return StepType(start.it, start.end, false);
   }
 };
 
@@ -176,7 +179,7 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO
-    return StepType(start.it,start.end,false);
+    return StepType(start.it, start.end, false);
   }
 };
 
@@ -190,7 +193,7 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO
-    return StepType(start.it,start.end,false);
+    return StepType(start.it, start.end, false);
   }
 };
 
