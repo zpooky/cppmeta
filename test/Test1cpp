@@ -32,6 +32,7 @@ class TestBase { //
 }
 using namespace dd::xx;
 using dd::xx::TestBase;
+// using Meter = NamedType<double, struct MeterTag>;
 
 class /**/ TestBase2 /*:*/ /**/ /*TestBase*/ /**/ { //
                                                     //}
@@ -123,6 +124,9 @@ class TemplatedClass {};
 template <sd::TemplatedClass<int> &asd>
 class TemplatedClassRef {};
 
+// template <int (&pa)[5]>
+// struct CArrayConstantTemplate {};
+
 template <int asd = 3>
 class templatedclassint {};
 
@@ -173,20 +177,30 @@ void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
 // static void staticFunc1(int **f, int &&);
 }
 
-class ClassWithFunctions {
-  int function0();
-  void function1();
+const int &operator[](int i) const;
 
-  void function2(int);
-  void function3(int f);
+// fp return fp
+// int * (*(*(*foo)(char))(double))[3];
 
-  void function4(int f, int);
-  void function5(int, int f);
+class ClassWithFunctions {};
 
-  void function6(int *f, int *);
-  void function7(int &, int *f);
+template <typename T>
+struct SingleTemplate {};
 
-  template <typename T = int>
-  void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4, T **,
-                const T **f5);
-};
+// template <typename K, typename V,
+//           template <typename> typename C = SingleTemplate>
+// class MapTemplateStuff {
+//   // C<K> key;
+//   // C<V> value;
+// };
+
+namespace spec {
+// template <typename T>
+// class A {
+//   int x;
+// }; // primary template
+// template <class T>
+// class A<T *> {
+//   long x;
+// }; // partial specializatio
+}

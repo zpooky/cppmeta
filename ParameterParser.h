@@ -15,17 +15,25 @@ private:
 
 public:
   StepType operator()(ParameterTypeAST &capture, StepType start) const {
-    std::vector<Token> qualifiers;
+    std::vector<Token> typeQualifiers;
     TypeIdentifier type;
     std::vector<Token> refs;
     std::vector<Token> ptrs;
-    auto ret = start                                                         //
-                   .repeat(qualifiers, match::Either({"const", "volatile"})) //
-                   .step(type, TypeIdentifierParser<Iterator>())             //
-                   .repeat(refs, match::Either({"&"}))                       //
-                   .repeat(ptrs, match::Either({"*"}));
+    Token constPointer; // TODO
+    // const byte* const it
+    //TODO union { paramter / carray / fp / template array }
+    //int (&pa)[5]
+    auto ret =
+        start                                                             //
+            .repeat(typeQualifiers, match::Either({"const", "volatile"})) //
+            .step(type, TypeIdentifierParser<Iterator>())                 //
+            .repeat(ptrs, match::Either({"*"}))                           //
+            .repeat(refs, match::Either({"&"}))                           //
+            .option(constPointer, "const")                                //
+        ;                                                                 //
+    ;
     if (ret) {
-      capture = ParameterTypeAST(qualifiers, type, refs, ptrs);
+      capture = ParameterTypeAST(typeQualifiers, type, refs, ptrs);
     }
     return ret;
   }

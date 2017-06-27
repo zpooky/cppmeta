@@ -188,6 +188,7 @@ match::Step<Iterator> generic_scope(AST &result, match::Step<Iterator> start) {
         continue;
       }
     }
+    /*Function*/
     {
       ast::FunctionDefinitionAST ast;
       auto next = start.step(ast, ast::FunctionDefinitionParser<Iterator>());
@@ -200,6 +201,63 @@ match::Step<Iterator> generic_scope(AST &result, match::Step<Iterator> start) {
     {
       ast::FunctionDeclarationAST ast;
       auto next = start.step(ast, ast::FunctionDeclarationParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    /*operator*/
+    {
+      ast::OperatorDeclarationAST ast;
+      auto next = start.step(ast, ast::OperatorDeclarationParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    {
+      ast::OperatorDefinitionAST ast;
+      auto next = start.step(ast, ast::OperatorDefinitionParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    /*ctor*/
+    {
+      ast::CtorDefinitionAST ast;
+      auto next = start.step(ast, ast::CtorDefinitionParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    {
+      ast::CtorDeclarationAST ast;
+      auto next = start.step(ast, ast::CtorDeclarationParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    /*dtor*/
+    {
+      ast::DtorDefinitionAST ast;
+      auto next = start.step(ast, ast::DtorDefinitionParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    {
+      ast::DtorDeclarationAST ast;
+      auto next = start.step(ast, ast::DtorDeclarationParser<Iterator>());
       if (next.valid) {
         result.push_back(ast);
         start = next;

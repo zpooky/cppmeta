@@ -8,6 +8,8 @@
 #include "matcher.h"
 
 namespace ast {
+
+/*FunctionDefinitionParser*/
 template <typename Iterator>
 class FunctionDefinitionParser
     : public match::Base<FunctionDefinitionAST, Iterator> {
@@ -18,6 +20,7 @@ public:
 
   StepType operator()(capture_type &capture, StepType step) const {
     // TODO
+    // - void class::method()
     // int f2(std::string str) noexcept try
     // {
     //     return std::stoi(str);
@@ -31,6 +34,7 @@ public:
   }
 };
 
+/*FunctionDeclarationParser*/
 template <typename Iterator>
 class FunctionDeclarationParser
     : public match::Base<FunctionDeclarationAST, Iterator> {
@@ -43,8 +47,8 @@ public:
     // TODO
     // int f(int a = 7, int *p = nullptr, int (*(*x)(double))[3] = nullptr);
     // int printf(const char* fmt, ...);
-    // int f(char* const);
     // auto fp11() -> void(*)(const std::string&)
+    // = delete;
     std::vector<tmp::TemplateTypenameAST> templates;
     std::vector<Token> prefix;
     ParameterTypeAST returnType;
@@ -86,6 +90,109 @@ public:
 
 // TODO operator, constructor,destructor
 // void* operator new[](std::size_t) = delete;
+
+/*OperatorDefinitionParser*/
+template <typename Iterator>
+class OperatorDeclarationParser
+    : public match::Base<OperatorDeclarationAST, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = OperatorDeclarationAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    std::vector<tmp::TemplateTypenameAST> templates;
+    Token virtualOp;
+    ParameterTypeAST returnType;
+    std::vector<ParameterAST> paramters;
+    std::vector<Token> postfix;
+    // TODO create ast
+    return start //
+        .option(templates, TemplateParser<Iterator>())     //
+        .option(virtualOp, "virtual")                      //
+        .step(returnType, ParameterTypeParser<Iterator>()) //
+        .step("operator")                                  //
+        .step("[")
+        .step("]")                                           //
+        .step("(")                                           //
+        .repeat(paramters, ParameterParser<Iterator>(), ",") //
+        .step(")")                                           //
+        .repeat(postfix,
+                match::Either({"final", "const", "override", "noexcept"})) //
+        .step(";");
+  }
+};
+
+/*OperatorDefinitionParser*/
+template <typename Iterator>
+class OperatorDefinitionParser
+    : public match::Base<OperatorDefinitionAST, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = OperatorDefinitionAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    // TODO
+    return StepType(start.it,start.end,false);
+  }
+};
+
+/*CtorDeclarationParser*/
+template <typename Iterator>
+class CtorDeclarationParser : public match::Base<CtorDeclarationAST, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = CtorDeclarationAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    // TODO
+    return StepType(start.it,start.end,false);
+  }
+};
+
+/*CtorDefinitionParser*/
+template <typename Iterator>
+class CtorDefinitionParser : public match::Base<CtorDefinitionAST, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = CtorDefinitionAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    // TODO
+    return StepType(start.it,start.end,false);
+  }
+};
+
+/*DtorDefinitionParser*/
+template <typename Iterator>
+class DtorDeclarationParser : public match::Base<DtorDeclarationAST, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = DtorDeclarationAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    // TODO
+    return StepType(start.it,start.end,false);
+  }
+};
+
+/*DtorDefinitionParser*/
+template <typename Iterator>
+class DtorDefinitionParser : public match::Base<DtorDefinitionAST, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = DtorDefinitionAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    // TODO
+    return StepType(start.it,start.end,false);
+  }
+};
 
 } // namespace ast
 

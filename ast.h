@@ -264,6 +264,7 @@ struct ParameterAST {
   }
 };
 
+/*FunctionDefinitionAST*/
 struct FunctionDeclarationAST {
   std::vector<tmp::TemplateTypenameAST> templates;
   std::vector<Token> prefix;
@@ -296,6 +297,7 @@ struct FunctionDeclarationAST {
   }
 };
 
+/*FunctionDefinitionAST*/
 struct FunctionDefinitionAST {
   ParameterTypeAST returnType;
   Token functionName;
@@ -320,6 +322,30 @@ struct FunctionDefinitionAST {
   }
 };
 
+/*OperatorDefintionAST*/
+struct OperatorDefinitionAST { //
+};
+
+/*OperatorDeclarationAST*/
+struct OperatorDeclarationAST { //
+};
+
+/*CtorDeclarationAST*/
+struct CtorDeclarationAST { //
+};
+
+/*CtorDefintionAST*/
+struct CtorDefinitionAST { //
+};
+
+/*DtorDeclarationAST*/
+struct DtorDeclarationAST { //
+};
+
+/*DtorDefintionAST*/
+struct DtorDefinitionAST { //
+};
+
 // ex: namespace key { ... }
 struct NamespaceAST {
   Token key;
@@ -341,18 +367,22 @@ struct NamespaceAST {
   NamespaceAST(const Token &p_key) : key(p_key) {
   }
 
+  /*namespace*/
   void push_back(const NamespaceAST &ast) {
     namespaces.push_back(ast);
   }
 
+  /*class*/
   void push_back(const ClassAST &ast) {
     classes.push_back(ast);
   }
 
+  /*enum*/
   void push_back(const EnumAST &ast) {
     enums.push_back(ast);
   }
 
+  /*Using*/
   void push_back(const UsingNamespaceAST &ast) {
     usingNamespaces.push_back(ast);
   }
@@ -365,12 +395,38 @@ struct NamespaceAST {
     usingType.push_back(ast);
   }
 
+  /*function*/
   void push_back(const FunctionDefinitionAST &ast) {
     funtionDefinitions.push_back(ast);
   }
 
   void push_back(const FunctionDeclarationAST &ast) {
     functionDeclarations.push_back(ast);
+  }
+
+  /*operator*/
+  void push_back(const OperatorDefinitionAST &ast) {
+    //TODO
+  }
+
+  void push_back(const OperatorDeclarationAST &ast) {
+    //TODO
+  }
+  /*ctor*/
+  void push_back(const CtorDefinitionAST &ast) {
+    //TODO
+  }
+
+  void push_back(const CtorDeclarationAST &ast) {
+    //TODO
+  }
+  /*dtor*/
+  void push_back(const DtorDefinitionAST &ast) {
+    //TODO
+  }
+
+  void push_back(const DtorDeclarationAST &ast) {
+    //TODO
   }
 
   yaml::yaml to_yaml() const {
@@ -661,14 +717,17 @@ struct FileAST {
   std::vector<FunctionDefinitionAST> funtionDefinitions;
   std::vector<FunctionDeclarationAST> functionDeclarations;
 
+  /*ClassAST*/
   void push_back(const ClassAST &ast) {
     classes.push_back(ast);
   }
 
+  /*Enum*/
   void push_back(const EnumAST &ast) {
     enums.push_back(ast);
   }
 
+  /*preprocessor*/
   void push_back(const pp::IncludeAST &ast) {
     includes.push_back(ast);
   }
@@ -681,6 +740,7 @@ struct FileAST {
     ifNotDefines.push_back(ast);
   }
 
+  /*using*/
   void push_back(const UsingNamespaceAST &ast) {
     usingNamespaces.push_back(ast);
   }
@@ -693,16 +753,42 @@ struct FileAST {
     usingType.push_back(ast);
   }
 
+  /*namespace*/
   void push_back(const NamespaceAST &ast) {
     namespaces.push_back(ast);
   }
 
+  /*Function*/
   void push_back(const FunctionDefinitionAST &ast) {
     funtionDefinitions.push_back(ast);
   }
 
   void push_back(const FunctionDeclarationAST &ast) {
     functionDeclarations.push_back(ast);
+  }
+  /*operator*/
+  void push_back(const OperatorDefinitionAST &ast) {
+    //TODO
+  }
+
+  void push_back(const OperatorDeclarationAST &ast) {
+    //TODO
+  }
+  /*ctor*/
+  void push_back(const CtorDefinitionAST &ast) {
+    //TODO
+  }
+
+  void push_back(const CtorDeclarationAST &ast) {
+    //TODO
+  }
+  /*dtor*/
+  void push_back(const DtorDefinitionAST &ast) {
+    //TODO
+  }
+
+  void push_back(const DtorDeclarationAST &ast) {
+    //TODO
   }
 
   yaml::yaml to_yaml() const {
