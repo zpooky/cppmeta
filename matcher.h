@@ -428,9 +428,19 @@ class TokenJoinParser : public match::Base<Token, Iterator> {
   std::vector<String> m_compare;
 
   StepType match(StepType start, const String &match,
-             std::vector<Token> &capture) const {
-    //TODO
-    return start;
+                 std::vector<Token> &capture) const {
+    StepType it = start;
+    String tmp;
+    while (match.starts_with(tmp) && it.it != it.end) {
+      if (match == tmp) {
+        return it;
+      }
+      tmp.append((*it.it).token);
+      capture.push_back(*it.it);
+      it = StepType(it.it + 1, it.end, it.valid);
+    }
+
+    return StepType(start.it, start.end, false);
   }
 
 public:
@@ -443,7 +453,7 @@ public:
   StepType operator()(capture_type &capture, StepType start) const {
     for (const auto &current : m_compare) {
       std::vector<Token> matching;
-      auto ret = match(start, current,matching);
+      auto ret = match(start, current, matching);
       if (ret.valid) {
         capture = join(matching);
         return ret;
