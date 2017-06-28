@@ -141,6 +141,7 @@ public:
                   // operator delete []
                   // operator new
                   // operator new []
+                  // TODO capture
                   Token t;
                   return it //
                       .step(t, match::Either({"delete", "new"}))
