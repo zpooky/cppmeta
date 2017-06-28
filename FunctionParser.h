@@ -48,7 +48,6 @@ public:
     // int f(int a = 7, int *p = nullptr, int (*(*x)(double))[3] = nullptr);
     // int printf(const char* fmt, ...);
     // auto fp11() -> void(*)(const std::string&)
-    // = delete;
     std::vector<tmp::TemplateTypenameAST> templates;
     std::vector<Token> prefix;
     ParameterTypeAST returnType;
@@ -93,6 +92,72 @@ public:
 
 // TODO operator, constructor,destructor
 // void* operator new[](std::size_t) = delete;
+template <typename Iterator>
+class OperatorTypeParser : public match::Base<Token, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = Token;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    Token base;
+    Token tail;
+    auto ret =
+        start //
+            .step(base, "operator")
+            .eitherx(
+                [&tail](StepType it) { //
+                  std::vector<String> op{
+                      "+",   "-",  "*",   "/",  "%",  "ˆ",  "&",  "|",
+                      "~",   "!",  "=",   "<",  ">",  "+=", "-=", "*=",
+                      "/=",  "%=", "ˆ=",  "&=", "|=", "<<", ">>", ">>=",
+                      "<<=", "==", "!=",  "<=", ">=", "&&", "||", "++",
+                      "--",  ",",  "->*", "->", "()", "[]"};
+                  // operator
+                  return it.step(tail, match::TokenJoinParser<Iterator>(op));
+                },
+                [](StepType it) {
+                  // operator ""
+                  // TODO capture
+                  Token literal;
+                  return it          //
+                      .step("\"")    //
+                      .step(literal) //
+                      .step("\"")    //
+                      ;
+
+                },
+                [](StepType it) {
+                  // cast operator
+                  // "operator type"
+                  // TODO capture
+                  TypeIdentifier type;
+                  return it //
+                      .step(type, TypeIdentifierParser<Iterator>());
+
+                },
+                [](StepType it) {
+                  // operator delete
+                  // operator delete []
+                  // operator new
+                  // operator new []
+                  Token t;
+                  return it //
+                      .step(t, match::Either({"delete", "new"}))
+                      .option([](StepType it) {
+                        // TODO capture
+                        return it      //
+                            .step("[") //
+                            .step(")");
+                      });
+                });
+
+    if (ret) {
+      capture = std::move(match::join(base, tail));
+    }
+    return ret;
+  }
+};
 
 /*OperatorDefinitionParser*/
 template <typename Iterator>
@@ -106,22 +171,34 @@ public:
   StepType operator()(capture_type &capture, StepType start) const {
     std::vector<tmp::TemplateTypenameAST> templates;
     Token virtualOp;
+    Token operatorType;
     ParameterTypeAST returnType;
     std::vector<ParameterAST> paramters;
     std::vector<Token> postfix;
+    bool pureVirtual = false;
+    bool deleted = false;
     // TODO create ast
-    return start                                           //
-        .option(templates, TemplateParser<Iterator>())     //
-        .option(virtualOp, "virtual")                      //
-        .step(returnType, ParameterTypeParser<Iterator>()) //
-        .step("operator")                                  //
-        .step("[")
-        .step("]")                                           //
+    return start                                             //
+        .option(templates, TemplateParser<Iterator>())       //
+        .option(virtualOp, "virtual")                        //
+        .step(returnType, ParameterTypeParser<Iterator>())   //
+        .step(operatorType, OperatorTypeParser<Iterator>())  //
         .step("(")                                           //
         .repeat(paramters, ParameterParser<Iterator>(), ",") //
         .step(")")                                           //
         .repeat(postfix,
                 match::Either({"final", "const", "override", "noexcept"})) //
+        .option([&pureVirtual, &deleted](StepType it) {                    //
+          Token end;
+          auto ret = it             //
+                         .step("=") //
+                         .step(end, match::Either({"0", "delete"}));
+          if (ret) {
+            pureVirtual = end == "0";
+            deleted = end == "delete";
+          }
+          return ret;
+        }) //
         .step(";");
   }
 };

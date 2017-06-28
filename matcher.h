@@ -12,6 +12,9 @@ namespace match {
 template <typename, typename>
 class Base;
 
+template <typename Iterator>
+struct Step;
+
 struct Either {
   std::vector<String> constants;
 
@@ -40,6 +43,14 @@ struct Either {
 //   return Either(std::forward<String>(tail)...);
 // }
 
+/*either()*/
+template <typename Iterator>
+Step<Iterator> either(Step<Iterator>);
+
+template <typename Iterator, typename Function1, typename... Function>
+Step<Iterator> either(Step<Iterator>, Function1, Function...);
+
+/*class Step*/
 template <typename Iterator>
 struct Step {
 public:
@@ -54,8 +65,11 @@ public:
 
   Step(Iterator p_it, Iterator p_end) : Step(p_it, p_end, true) {
   }
+  SelfType step(const char *constant) const {
+    return step(String(constant));
+  }
 
-  SelfType step(const String &constant) {
+  SelfType step(const String &constant) const {
     if (valid) {
       if (it != end) {
         if (*it == constant) {
@@ -66,7 +80,7 @@ public:
     return Step(it, end, false);
   }
 
-  SelfType step(Token &capture) {
+  SelfType step(Token &capture) const {
     if (valid) {
       if (it != end) {
         capture = *it;
@@ -114,6 +128,25 @@ public:
   //   }
   //   return Step(it, end, false);
   // }
+
+  template <size_t N>
+  SelfType step(Token &t, const char (*constant)[N]) {
+    return step(t, String(constant, N));
+  }
+  SelfType step(Token &t, const char *constant) {
+    return step(t, String(constant));
+  }
+  SelfType step(Token &t, const String &constant) {
+    if (valid) {
+      if (it != end) {
+        if (*it == constant) {
+          t = *it;
+          return SelfType(it + 1, end, true);
+        }
+      }
+    }
+    return SelfType(it, end, false);
+  }
 
   template <typename Out>
   SelfType step(Out &out, const Base<Out, Iterator> &f) {
@@ -176,6 +209,10 @@ public:
     return SelfType(it, end, valid);
   }
 
+  template <size_t N>
+  SelfType option(Token &t, const char (*constant)[N]) {
+    return option(t, String(constant, N));
+  }
   SelfType option(Token &t, const char *constant) {
     return option(t, String(constant));
   }
@@ -335,6 +372,11 @@ public:
   operator bool() {
     return valid;
   }
+
+  template <typename Function1, typename... Function>
+  Step<Iterator> eitherx(Function1 first, Function... tail) {
+    return either(*this, first, tail...);
+  }
 }; // class Step
 
 template <typename Iterator>
@@ -364,6 +406,52 @@ class Base {
 public:
   virtual Step<Iterator> operator()(T &, Step<Iterator> step) const = 0;
 }; // class Base
+
+/*join()*/
+template <typename... T>
+Token join(T... t) {
+  // TODO
+  return Token();
+}
+
+template <typename Collection>
+typename std::enable_if<
+    std::is_same<typename Collection::value_type, Token>::value, Token>::type
+joins(const Collection &c) {
+  return Token();
+}
+
+/*TokenJoinParser*/
+template <typename Iterator>
+class TokenJoinParser : public match::Base<Token, Iterator> {
+  using StepType = match::Step<Iterator>;
+  std::vector<String> m_compare;
+
+  StepType match(StepType start, const String &match,
+             std::vector<Token> &capture) const {
+    //TODO
+    return start;
+  }
+
+public:
+  using capture_type = Token;
+
+  TokenJoinParser(const std::vector<String> &match) //
+      : m_compare(match) {
+  }
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    for (const auto &current : m_compare) {
+      std::vector<Token> matching;
+      auto ret = match(start, current,matching);
+      if (ret.valid) {
+        capture = join(matching);
+        return ret;
+      }
+    }
+    return StepType(start.it, start.end, false);
+  }
+};
 
 } // namespace match
 

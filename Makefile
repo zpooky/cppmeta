@@ -1,6 +1,6 @@
 # Declaration of variables
 CC = g++
-CC_FLAGS = -ggdb -std=c++14
+CC_FLAGS = -ggdb -std=c++14 -pedantic
 
 # File names
 EXEC = main

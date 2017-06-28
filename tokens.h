@@ -133,11 +133,6 @@ struct Token {
     return *this;
   }
 
-  Token &operator=(Token &&o) {
-    swap(o);
-    return *this;
-  }
-
   bool operator==(const char *t) const {
     return std::strcmp(token.c_str(), t) == 0;
   }
