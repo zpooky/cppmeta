@@ -1,1 +1,7 @@
 void extFunc1(int **f, int &&);
+
+const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
+void func(char *(&dd)(char, int, float));
+
+template <typename T = int>
+void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);

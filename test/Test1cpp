@@ -5,6 +5,8 @@
 #endif
 
 #include <iostream>
+#include <string>
+#include <vector>
 
 #define ASD class
 
@@ -177,7 +179,7 @@ void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
 // static void staticFunc1(int **f, int &&);
 }
 
-const int &operator[](int i) const;
+const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
 
 // fp return fp
 // int * (*(*(*foo)(char))(double))[3];
@@ -187,20 +189,29 @@ class ClassWithFunctions {};
 template <typename T>
 struct SingleTemplate {};
 
-// template <typename K, typename V,
-//           template <typename> typename C = SingleTemplate>
-// class MapTemplateStuff {
-//   // C<K> key;
-//   // C<V> value;
-// };
+// template <typename K, typename V, template <typename> typename C = SingleTemplate>
+class MapTemplateStuff {
+  // C<K> key;
+  // C<V> value;
+};
 
 namespace spec {
-// template <typename T>
-// class A {
-//   int x;
-// }; // primary template
+template <typename T>
+class A {
+  // int x;
+}; // primary template
 // template <class T>
 // class A<T *> {
 //   long x;
 // }; // partial specializatio
 }
+// union UnionDestrcutor {
+//   std::string str;
+//   std::vector<int> vec;
+//   ~UnionDestrcutor() {
+//   }
+// };
+// template <typename T1, typename T2>
+// static auto func(T1 o, T2 t) -> decltype(T1(0) + T2(0)) {
+//   return o + t;
+// }

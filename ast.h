@@ -14,6 +14,8 @@ struct UsingTypeAST;
 struct TypeIdentifier;
 struct Type;
 struct EnumAST;
+struct ParameterAST;
+struct ParameterTypeAST;
 
 /*TemplateAST*/
 struct Typed {
@@ -212,6 +214,16 @@ struct ParameterTypeAST {
         ptrs(p) {
   }
 
+  ParameterTypeAST(const ParameterTypeAST &o) //
+      : qualifiers(o.qualifiers),
+        type(o.type),
+        refs(o.refs),
+        ptrs(o.ptrs) {
+  }
+
+  ~ParameterTypeAST() {
+  }
+
   //
   yaml::yaml to_yaml() const {
     yaml::yaml result;
@@ -238,11 +250,211 @@ struct ExpressionAST {
   ExpressionAST(Tail &&... tail) //
       : tokens{std::forward<Token>(tail)...} {
   }
-  //
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("exp", yaml::List(tokens));
+    return result;
+  }
 };
 
+struct FunctionPointerAST {
+  ParameterTypeAST returnType;
+  Token ref;
+  Token name;
+  std::vector<ParameterAST> paramters;
+  //
+  FunctionPointerAST() //
+      : returnType(),
+        ref(),
+        name(),
+        paramters() {
+  }
+
+  FunctionPointerAST(const ParameterTypeAST &rt, const Token &r, const Token &n,
+                     const std::vector<ParameterAST> &p)
+      //
+      : returnType(rt),
+        ref(r),
+        name(n),
+        paramters(p) {
+  }
+  FunctionPointerAST(const FunctionPointerAST &o) //
+      : returnType(o.returnType),
+        ref(o.ref),
+        name(o.name),
+        paramters(o.paramters) {
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("return", returnType);
+    result.push_back("ref", ref);
+    result.push_back("name", name);
+    result.push_back("parameters", yaml::List(paramters));
+    return result;
+  }
+};
+
+/*TemplateCArrayAST*/
+// ex: const T (&x)[N]
+struct TemplateCArrayAST {
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
+enum class ParamCat { NONE, PARAMETER, FUNC_POINTER, TEMPLATE_ARRAY };
+/*ParameterEither*/
+struct ParameterEither {
+private:
+  template <typename T>
+  using TheParamType =
+      typename std::aligned_storage<sizeof(T), alignof(T)>::type;
+
+  union PE {
+    int dummy;
+    TheParamType<ParameterTypeAST> type;
+    TheParamType<FunctionPointerAST> fp;
+    TheParamType<TemplateCArrayAST> carr;
+
+    // alignas(alignof(ParameterTypeAST)) uint8_t
+    // type[sizeof(ParameterTypeAST)];
+    // alignas(alignof(FunctionPointerAST)) uint8_t
+    // fp[sizeof(FunctionPointerAST)];
+    // alignas(alignof(TemplateCArrayAST)) uint8_t
+    // carr[sizeof(TemplateCArrayAST)];
+  };
+
+public:
+  PE either;
+  ParamCat pc;
+
+  ParameterEither() //
+      : pc(ParamCat::NONE) {
+    new (&either.dummy) int();
+  }
+
+  ParameterEither(const ParameterTypeAST &pt) //
+      : pc(ParamCat::PARAMETER) {
+    new (&either.type) ParameterTypeAST(pt);
+  }
+
+  ParameterEither(const FunctionPointerAST &pfp) //
+      : pc(ParamCat::FUNC_POINTER) {
+    new (&either.fp) FunctionPointerAST(pfp);
+  }
+
+  ParameterEither(const TemplateCArrayAST &pcarr) //
+      : pc(ParamCat::TEMPLATE_ARRAY) {
+    new (&either.carr) TemplateCArrayAST(pcarr);
+  }
+
+  ParameterEither(const ParameterEither &o) //
+      : pc(ParamCat::NONE) {
+    operator=(o);
+  }
+
+  ParameterEither(ParameterEither &&o) //
+      : pc(ParamCat::NONE) {
+    operator=(std::move(o));
+  }
+
+  ParameterEither &operator=(const ParameterEither &o) {
+    destruct();
+    pc = o.pc;
+    if (pc == ParamCat::PARAMETER) {
+      const auto &other =
+          *reinterpret_cast<const ParameterTypeAST *>(&o.either.type);
+
+      new (&either.type) ParameterTypeAST(other);
+    } else if (pc == ParamCat::FUNC_POINTER) {
+      const auto &other =
+          *reinterpret_cast<const FunctionPointerAST *>(&o.either.fp);
+
+      new (&either.fp) FunctionPointerAST(other);
+    } else if (pc == ParamCat::TEMPLATE_ARRAY) {
+      const auto &other =
+          *reinterpret_cast<const TemplateCArrayAST *>(&o.either.carr);
+
+      new (&either.carr) TemplateCArrayAST(other);
+    }
+    return *this;
+  }
+
+  ParameterEither &operator=(ParameterEither &&o) {
+    destruct();
+    pc = o.pc;
+    if (pc == ParamCat::PARAMETER) {
+      auto &other = *reinterpret_cast<ParameterTypeAST *>(&o.either.type);
+
+      new (&either.type) ParameterTypeAST(std::move(other));
+    } else if (pc == ParamCat::FUNC_POINTER) {
+      auto &other = *reinterpret_cast<FunctionPointerAST *>(&o.either.fp);
+
+      new (&either.fp) FunctionPointerAST(std::move(other));
+    } else if (pc == ParamCat::TEMPLATE_ARRAY) {
+      auto &other = *reinterpret_cast<TemplateCArrayAST *>(&o.either.carr);
+
+      new (&either.carr) TemplateCArrayAST(std::move(other));
+    }
+    return *this;
+  }
+
+  ~ParameterEither() {
+    destruct();
+  }
+
+  void destruct() {
+    if (pc == ParamCat::PARAMETER) {
+      auto &ptr = *reinterpret_cast<ParameterTypeAST *>(&either.type);
+      ptr.~ParameterTypeAST();
+    } else if (pc == ParamCat::FUNC_POINTER) {
+      auto &ptr = *reinterpret_cast<FunctionPointerAST *>(&either.fp);
+      ptr.~FunctionPointerAST();
+    } else if (pc == ParamCat::TEMPLATE_ARRAY) {
+      auto &ptr = *reinterpret_cast<TemplateCArrayAST *>(&either.carr);
+      ptr.~TemplateCArrayAST();
+    }
+    pc = ParamCat::NONE;
+  }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    if (pc == ParamCat::PARAMETER) {
+      auto &ptr = *reinterpret_cast<const ParameterTypeAST *>(&either.type);
+      return ptr.to_yaml();
+    } else if (pc == ParamCat::FUNC_POINTER) {
+      auto &ptr = *reinterpret_cast<const FunctionPointerAST *>(&either.fp);
+      return ptr.to_yaml();
+    } else if (pc == ParamCat::TEMPLATE_ARRAY) {
+      auto &ptr = *reinterpret_cast<const TemplateCArrayAST *>(&either.carr);
+      return ptr.to_yaml();
+    }
+    return result;
+  }
+};
+
+struct ReturnTypeAST {
+  ParameterEither type;
+  ReturnTypeAST() //
+      : type() {
+  }
+
+  template <typename T>
+  ReturnTypeAST(T &&arg) //
+      : type(std::forward<T>(arg)) {
+  }
+
+  yaml::yaml to_yaml() const {
+    return type.to_yaml();
+  }
+};
+
+/*ParamterAST*/
 struct ParameterAST {
-  ParameterTypeAST type;
+  ParameterEither type;
   Token name;
   ExpressionAST defaultValue;
 
@@ -251,15 +463,31 @@ struct ParameterAST {
         name(),
         defaultValue() {
   }
-  ParameterAST(const ParameterTypeAST &t, const Token &n,
+
+  ParameterAST &operator=(const ParameterAST &o) {
+    type = o.type;
+    name = o.name;
+    defaultValue = o.defaultValue;
+    return *this;
+  }
+
+  template <typename T>
+  ParameterAST(T &&o, const Token &n,
                const ExpressionAST &dv) //
-      : type(t),
+      : type(std::forward<T>(o)),
         name(n),
         defaultValue(dv) {
   }
+
+  ~ParameterAST() {
+  }
+
   //
   yaml::yaml to_yaml() const {
     yaml::yaml result;
+    result.push_back("type", type);
+    result.push_back("name", name);
+    result.push_back("default", defaultValue);
     return result;
   }
 };
@@ -292,8 +520,19 @@ struct FunctionDeclarationAST {
         prefix(pre), returnType(ret), functionName(n), parameters(params),
         postfix(post), pureVirtual(pv), deleted(dd) {
   }
+
   yaml::yaml to_yaml() const {
     yaml::yaml result;
+    result.push_back("template", yaml::List(templates));
+    result.push_back("prefix", yaml::List(prefix));
+
+    result.push_back("return", returnType);
+    result.push_back("name", functionName);
+
+    result.push_back("parameters", yaml::List(parameters));
+    result.push_back("postfix", yaml::List(postfix));
+    // result.push_back("pure-virtual", pureVirtual);
+    // result.push_back("deleted", deleted);
     return result;
   }
 };
@@ -445,31 +684,6 @@ struct NamespaceAST {
 };
 
 struct FunctionAST {};
-
-struct FunctionPointerAST {
-  ParameterTypeAST returnType;
-  Token ref;
-  Token name;
-  std::vector<ParameterAST> paramters;
-  //
-  FunctionPointerAST()
-      : //
-        returnType(),
-        ref(), name(), paramters() {
-  }
-
-  FunctionPointerAST(const ParameterTypeAST &rt, const Token &r, const Token &n,
-                     const std::vector<ParameterAST> &p)
-      : //
-        returnType(rt),
-        ref(r), name(n), paramters(p) {
-  }
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    return result;
-  }
-};
 
 struct OperatorAST {};
 
@@ -689,14 +903,6 @@ struct ClassAST {
   }
 };
 
-// ex: const T (&x)[N]
-struct TemplateCArrayAST {
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    return result;
-  }
-};
-
 } // namespace ast
 
 namespace ast {
@@ -800,6 +1006,7 @@ struct FileAST {
     result.push_back("using-namespace", yaml::List(usingNamespaces));
     result.push_back("using-alias", yaml::List(usingAlias));
     result.push_back("namespace", yaml::List(classes));
+    result.push_back("function-declaration", yaml::List(functionDeclarations));
     return result;
   }
 };
