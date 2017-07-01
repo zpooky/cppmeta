@@ -3,17 +3,13 @@
 
 #include "ArrayList.h"
 #include "ClassParser.h"
+#include "EnumParser.h"
+#include "FunctionParser.h"
 #include "Pattern.h"
+#include "ScopeParser.h"
 #include "ast.h"
 #include "matcher.h"
 #include "tokens.h"
-#include "FunctionParser.h"
-#include "EnumParser.h"
-
-namespace {
-template <typename Iterator, typename AST>
-match::Step<Iterator> generic_scope(AST &, match::Step<Iterator>);
-}
 
 namespace ast {
 // ex: using namespace Type;
@@ -128,146 +124,6 @@ public:
     return generic_scope(result, start);
   } // Parse::parse
 };
-}
-
-namespace {
-template <typename Iterator, typename AST>
-match::Step<Iterator> generic_scope(AST &result, match::Step<Iterator> start) {
-  while (start.it != start.end) {
-    {
-      ast::ClassAST ast;
-      auto next = start.step(ast, ast::ClassParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::EnumAST ast;
-      auto next = start.step(ast, ast::EnumParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::NamespaceAST ast;
-      auto next = start.step(ast, ast::NamespaceParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::UsingNamespaceAST ast;
-      auto next = start.step(ast, ast::UsingNamespaceParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::UsingAliasAST ast;
-      auto next = start.step(ast, ast::UsingAliasParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::UsingTypeAST ast;
-      auto next = start.step(ast, ast::UsingTypeParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    /*Function*/
-    {
-      ast::FunctionDefinitionAST ast;
-      auto next = start.step(ast, ast::FunctionDefinitionParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::FunctionDeclarationAST ast;
-      auto next = start.step(ast, ast::FunctionDeclarationParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    /*operator*/
-    {
-      ast::OperatorDeclarationAST ast;
-      auto next = start.step(ast, ast::OperatorDeclarationParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::OperatorDefinitionAST ast;
-      auto next = start.step(ast, ast::OperatorDefinitionParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    /*ctor*/
-    {
-      ast::CtorDefinitionAST ast;
-      auto next = start.step(ast, ast::CtorDefinitionParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::CtorDeclarationAST ast;
-      auto next = start.step(ast, ast::CtorDeclarationParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    /*dtor*/
-    {
-      ast::DtorDefinitionAST ast;
-      auto next = start.step(ast, ast::DtorDefinitionParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    {
-      ast::DtorDeclarationAST ast;
-      auto next = start.step(ast, ast::DtorDeclarationParser<Iterator>());
-      if (next.valid) {
-        result.push_back(ast);
-        start = next;
-        continue;
-      }
-    }
-    return start;
-  }
-  return start;
-}
 }
 
 #endif

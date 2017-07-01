@@ -1,7 +1,10 @@
+#ifndef SP_CPP_META_ENUM_PARSER_H
+#define SP_CPP_META_ENUM_PARSER_H
+
+#include "ExpressionParser.h"
 #include "Pattern.h"
 #include "ast.h"
 #include "matcher.h"
-#include "ExpressionParser.h"
 
 namespace ast {
 
@@ -65,3 +68,5 @@ public:
   }
 };
 }
+
+#endif

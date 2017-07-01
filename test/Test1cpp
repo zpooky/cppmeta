@@ -189,7 +189,8 @@ class ClassWithFunctions {};
 template <typename T>
 struct SingleTemplate {};
 
-// template <typename K, typename V, template <typename> typename C = SingleTemplate>
+// template <typename K, typename V, template <typename> typename C =
+// SingleTemplate>
 class MapTemplateStuff {
   // C<K> key;
   // C<V> value;
@@ -205,6 +206,10 @@ class A {
 //   long x;
 // }; // partial specializatio
 }
+// auto fp11() -> void(*)(const std::string&);
+// int printf(const char* fmt, ...);
+// int fwith_stuff(int a = 7, int *p = nullptr, int ( #<{(||)}># *(*x)(double)#<{(||)}>#   )[3] = nullptr);
+int fwith_stuff2(int (&arr)[1024]);
 // union UnionDestrcutor {
 //   std::string str;
 //   std::vector<int> vec;

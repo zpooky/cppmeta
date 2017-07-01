@@ -586,117 +586,6 @@ struct DtorDeclarationAST { //
 struct DtorDefinitionAST { //
 };
 
-// ex: namespace key { ... }
-struct NamespaceAST {
-  Token key;
-  // namespace
-  std::vector<NamespaceAST> namespaces;
-  // type
-  std::vector<ClassAST> classes;
-  std::vector<EnumAST> enums;
-  // using
-  std::vector<UsingNamespaceAST> usingNamespaces;
-  std::vector<UsingAliasAST> usingAlias;
-  std::vector<UsingTypeAST> usingType;
-  //
-  std::vector<FunctionDefinitionAST> funtionDefinitions;
-  std::vector<FunctionDeclarationAST> functionDeclarations;
-
-  NamespaceAST() : key() {
-  }
-  NamespaceAST(const Token &p_key) : key(p_key) {
-  }
-
-  /*namespace*/
-  void push_back(const NamespaceAST &ast) {
-    namespaces.push_back(ast);
-  }
-
-  /*class*/
-  void push_back(const ClassAST &ast) {
-    classes.push_back(ast);
-  }
-
-  /*enum*/
-  void push_back(const EnumAST &ast) {
-    enums.push_back(ast);
-  }
-
-  /*Using*/
-  void push_back(const UsingNamespaceAST &ast) {
-    usingNamespaces.push_back(ast);
-  }
-
-  void push_back(const UsingAliasAST &ast) {
-    usingAlias.push_back(ast);
-  }
-
-  void push_back(const UsingTypeAST &ast) {
-    usingType.push_back(ast);
-  }
-
-  /*function*/
-  void push_back(const FunctionDefinitionAST &ast) {
-    funtionDefinitions.push_back(ast);
-  }
-
-  void push_back(const FunctionDeclarationAST &ast) {
-    functionDeclarations.push_back(ast);
-  }
-
-  /*operator*/
-  void push_back(const OperatorDefinitionAST &ast) {
-    // TODO
-  }
-
-  void push_back(const OperatorDeclarationAST &ast) {
-    // TODO
-  }
-  /*ctor*/
-  void push_back(const CtorDefinitionAST &ast) {
-    // TODO
-  }
-
-  void push_back(const CtorDeclarationAST &ast) {
-    // TODO
-  }
-  /*dtor*/
-  void push_back(const DtorDefinitionAST &ast) {
-    // TODO
-  }
-
-  void push_back(const DtorDeclarationAST &ast) {
-    // TODO
-  }
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml n;
-    n.push_back("classes", yaml::List(classes));
-    n.push_back("namespaces", yaml::List(namespaces));
-    n.push_back("using-namespace", yaml::List(usingNamespaces));
-    n.push_back("using-alias", yaml::List(usingAlias));
-
-    yaml::yaml yaml;
-    yaml.push_back("token", key);
-    yaml.push_back("namespace", n);
-    return yaml;
-  }
-};
-
-struct FunctionAST {};
-
-struct OperatorAST {};
-
-struct ConstructorAST {};
-
-struct DestructorAST {
-public:
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    return result;
-  }
-};
-
 struct MemberAST {};
 
 struct ExternalAST {};
@@ -834,80 +723,13 @@ struct UsingTypeAST {
     return result;
   }
 };
-/*StaticAST*/
-struct StaticAST {
-  std::vector<MemberAST> members;
-  std::vector<FunctionAST> functions;
-};
+// #<{(|StaticAST|)}>#
+// struct StaticAST {
+// };
 
 /*ScopeAST*/
 struct ScopeAST {
-  std::vector<ConstructorAST> constructors;
-  std::vector<MemberAST> members;
-  std::vector<OperatorAST> operators;
-  std::vector<FunctionPointerAST> functionPointers;
-  StaticAST staticAST;
-  std::vector<TypedefAST> typdefs;
-  std::vector<UsingNamespaceAST> usingNamespaces;
-  std::vector<UsingAliasAST> usingAlias;
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    return result;
-  }
-};
-
-/*ClassAST*/
-// ex:
-// template<int = 1, T>
-// class Typename : public T<int>,private asd { ... }
-struct ClassAST {
-  Token name;
-  std::vector<InheritanceAST> inherits;
-  std::vector<tmp::TemplateTypenameAST> templates;
-
-  DestructorAST dtorAST;
-  /**/
-  ScopeAST publicAST;
-  ScopeAST privateAST;
-  ScopeAST protectedAST;
-
-  ClassAST()
-      : name(), inherits{}, templates{}, dtorAST(), //
-        publicAST(), privateAST(),                  //
-        protectedAST() {
-  }
-
-  ClassAST(const Token &p_name, const std::vector<InheritanceAST> &p_inherits,
-           const std::vector<tmp::TemplateTypenameAST> &p_templates)
-      : name(p_name),              //
-        inherits(p_inherits),      //
-        templates(p_templates),    //
-        dtorAST(),                 //
-        publicAST(), privateAST(), //
-        protectedAST() {
-  }
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    yaml::yaml dd;
-    dd.push_back("name", name);
-    dd.push_back("dtor", dtorAST);
-    dd.push_back("public", publicAST);
-    dd.push_back("private", privateAST);
-    dd.push_back("protected", protectedAST);
-    dd.push_back("inherits", yaml::List(inherits));
-    dd.push_back("template", yaml::List(templates));
-    result.push_back("class", dd);
-    return result;
-  }
-};
-
-} // namespace ast
-
-namespace ast {
-/*FileAST*/
-struct FileAST {
+  // types
   std::vector<ClassAST> classes;
   std::vector<EnumAST> enums;
   // preprocess
@@ -920,9 +742,18 @@ struct FileAST {
   std::vector<UsingTypeAST> usingType;
   // namespace
   std::vector<NamespaceAST> namespaces;
-  //
+  // functions
   std::vector<FunctionDefinitionAST> funtionDefinitions;
   std::vector<FunctionDeclarationAST> functionDeclarations;
+  // operators
+  std::vector<OperatorDefinitionAST> operatorDefinitions;
+  std::vector<OperatorDeclarationAST> operatorDeclarations;
+  // ctor
+  std::vector<CtorDefinitionAST> ctorDefinitions;
+  std::vector<CtorDeclarationAST> ctorDeclarations;
+  // dtor
+  std::vector<DtorDefinitionAST> dtorDefinitions;
+  std::vector<DtorDeclarationAST> dtorDeclarations;
 
   /*ClassAST*/
   void push_back(const ClassAST &ast) {
@@ -975,30 +806,30 @@ struct FileAST {
   }
   /*operator*/
   void push_back(const OperatorDefinitionAST &ast) {
-    // TODO
+    operatorDefinitions.push_back(ast);
   }
 
   void push_back(const OperatorDeclarationAST &ast) {
-    // TODO
+    operatorDeclarations.push_back(ast);
   }
   /*ctor*/
   void push_back(const CtorDefinitionAST &ast) {
-    // TODO
+    ctorDefinitions.push_back(ast);
   }
 
   void push_back(const CtorDeclarationAST &ast) {
-    // TODO
+    ctorDeclarations.push_back(ast);
   }
   /*dtor*/
   void push_back(const DtorDefinitionAST &ast) {
-    // TODO
+    dtorDefinitions.push_back(ast);
   }
 
   void push_back(const DtorDeclarationAST &ast) {
-    // TODO
+    dtorDeclarations.push_back(ast);
   }
 
-  yaml::yaml to_yaml() const {
+  virtual yaml::yaml to_yaml() const {
     yaml::yaml result;
     result.push_back("includes", yaml::List(includes));
     result.push_back("defines", yaml::List(defines));
@@ -1009,6 +840,77 @@ struct FileAST {
     result.push_back("function-declaration", yaml::List(functionDeclarations));
     return result;
   }
+};
+
+// ex: namespace key { ... }
+struct NamespaceAST : ScopeAST {
+  Token key;
+
+  NamespaceAST() : key() {
+  }
+  NamespaceAST(const Token &p_key) : key(p_key) {
+  }
+
+  // TODO
+  // yaml::yaml to_yaml() const {
+  //   yaml::yaml result(ScopeAST.to_yaml());
+  //   result.push_back("namespace", key);
+  //   return result;
+  // }
+};
+
+/*ClassAST*/
+// ex:
+// template<int = 1, T>
+// class Typename : public T<int>,private asd { ... }
+struct ClassAST : ScopeAST {
+  Token name;
+  std::vector<InheritanceAST> inherits;
+  std::vector<tmp::TemplateTypenameAST> templates;
+
+  /**/
+  ScopeAST publicAST;
+  ScopeAST privateAST;
+  ScopeAST protectedAST;
+
+  ClassAST()
+      : name(),       //
+        inherits{},   //
+        templates{},  //
+        publicAST(),  //
+        privateAST(), //
+        protectedAST() {
+  }
+
+  ClassAST(const Token &p_name, const std::vector<InheritanceAST> &p_inherits,
+           const std::vector<tmp::TemplateTypenameAST> &p_templates)
+      : name(p_name),              //
+        inherits(p_inherits),      //
+        templates(p_templates),    //
+        publicAST(), privateAST(), //
+        protectedAST() {
+  }
+
+  yaml::yaml to_yaml() const {
+    //TODO super.to_yaml()
+    yaml::yaml result;
+    yaml::yaml dd;
+    dd.push_back("name", name);
+    dd.push_back("public", publicAST);
+    dd.push_back("private", privateAST);
+    dd.push_back("protected", protectedAST);
+    dd.push_back("inherits", yaml::List(inherits));
+    dd.push_back("template", yaml::List(templates));
+    result.push_back("class", dd);
+    return result;
+  }
+};
+
+} // namespace ast
+
+namespace ast {
+/*FileAST*/
+struct FileAST : ScopeAST {//
 };
 } // namespace ast
 

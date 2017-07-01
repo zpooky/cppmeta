@@ -79,17 +79,17 @@ public:
                   }
                   return ret;
                 },
-                [&wrappedType](StepType it) { //
-                  ParameterTypeAST type;
-                  auto ret = it.step(type, ParameterTypeParser<Iterator>());
+                [&wrappedType](StepType it) {
+                  TemplateCArrayAST type;
+                  auto ret = it.step(type, TemplateCArrayParser<Iterator>());
                   if (ret) {
                     wrappedType = std::move(type);
                   }
                   return ret;
                 },
-                [&wrappedType](StepType it) {
-                  TemplateCArrayAST type;
-                  auto ret = it.step(type, TemplateCArrayParser<Iterator>());
+                [&wrappedType](StepType it) { //
+                  ParameterTypeAST type;
+                  auto ret = it.step(type, ParameterTypeParser<Iterator>());
                   if (ret) {
                     wrappedType = std::move(type);
                   }
@@ -149,7 +149,20 @@ private:
 
 public:
   StepType operator()(TemplateCArrayAST &capture, StepType start) const {
-    return start;
+    ParameterTypeAST returnType;
+    std::vector<Token> ptr;
+    Token variable;
+    Token size;
+    return start                                           //
+        .step(returnType, ParameterTypeParser<Iterator>()) //
+        .step("(")                                         //
+        .repeat(ptr, match::Either({"*", "&"}))            //
+        .option(variable, VariableName<Iterator>())        //
+        .step(")")                                         //
+        .step("[")                                         //
+        // TODO expression
+        .step(size) //
+        .step("]");
   }
 };
 } // namespace ast
