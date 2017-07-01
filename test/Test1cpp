@@ -157,7 +157,13 @@ enum class EnumType1 : int {
 // template <void (*pf)(int, int *, int a, sd::TemplatedClass<int>)>
 // struct TemplateClassFunctionPointerTypeParam {};
 
-namespace test {
+extern void extFunc0(int **f);
+extern void extFunc1(int **f, int &&);
+//
+// static void staticFunc0(int **f);
+// static void staticFunc1(int **f, int &&);
+
+class TestClassFunctions {
 int function0();
 void function1();
 
@@ -170,14 +176,9 @@ void function5(int, int f);
 void function6(int *f, int *);
 void function7(int &, int *f);
 
-extern void extFunc0(int **f);
-extern void extFunc1(int **f, int &&);
-
 template <typename T = int>
 void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
-// static void staticFunc0(int **f);
-// static void staticFunc1(int **f, int &&);
-}
+};
 
 const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
 

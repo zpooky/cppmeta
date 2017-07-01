@@ -91,7 +91,6 @@ public:
 };
 
 // TODO operator, constructor,destructor
-// void* operator new[](std::size_t) = delete;
 template <typename Iterator>
 class OperatorTypeParser : public match::Base<Token, Iterator> {
   using StepType = match::Step<Iterator>;
@@ -102,6 +101,7 @@ public:
   StepType operator()(capture_type &capture, StepType start) const {
     Token base;
     Token tail;
+    // TODO void* operator new[](std::size_t) = delete;
     auto ret =
         start //
             .step(base, "operator")

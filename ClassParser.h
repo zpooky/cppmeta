@@ -2,6 +2,7 @@
 #define SP_CPP_META_CLASS_PARSER_H
 
 #include "Pattern.h"
+#include "ScopeParser.h"
 #include "TemplateParser.h"
 #include "ast.h"
 #include "matcher.h"
@@ -15,7 +16,7 @@ class InheritanceParser
   using StepType = match::Step<Iterator>;
 
 public:
-  using capture_type = std::vector<InheritanceAST>; 
+  using capture_type = std::vector<InheritanceAST>;
 
   StepType operator()(std::vector<InheritanceAST> &result,
                       StepType step) const {
@@ -83,14 +84,13 @@ public:
         .step(name, TypeName<Iterator>())                        //
         .option(inherits, InheritanceParser<Iterator>())         //
         .step("{")
-        .stepx([&](StepType it) {
-          match::Either scopes({"public", "private", "protected"});
-          Token scope;
-          auto scopeStart = it                       //
-                                .step(scope, scopes) //
-                                .step(":");
-          // return scopeStart;
-          capture = ClassAST(name, inherits, templates);
+        .stepx([&name, &inherits, &templates, &capture](StepType it) {
+          ClassAST tmp(name, inherits, templates);
+          it = generic_scope(tmp, it);
+          if (it) {
+            capture = tmp;
+          }
+
           return it;
         })         //
         .step("}") //
