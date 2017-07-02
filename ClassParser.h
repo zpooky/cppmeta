@@ -77,12 +77,15 @@ public:
     std::vector<InheritanceAST> inherits;
     std::vector<tmp::TemplateTypenameAST> templates;
 
+    //TODO capture templateSpecialization
+    std::vector<TypeIdentifier> templateSpec;
+
     return start
         .option(templates, TemplateParser<Iterator>())         //
         .step(tq, match::Either({"union", "class", "struct"})) //
         .step(name, TypeName<Iterator>())                      //
-        // TODO template specialization
-        .option(inherits, InheritanceParser<Iterator>()) //
+        .option(templateSpec, TypeArgumentParser<Iterator>()) //
+        .option(inherits, InheritanceParser<Iterator>())      //
         .step("{")
         .stepx([&name, &inherits, &templates, &tq, &capture](StepType it) {
           match::Either scopes({"public", "private", "protected"});

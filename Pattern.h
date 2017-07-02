@@ -126,9 +126,13 @@ struct TypeIdentifierParser : public match::Base<TypeIdentifier, Iterator> {
   StepType operator()(TypeIdentifier &result, StepType it) const {
     std::vector<Token> namespaces;
     Token t;
+    std::vector<Token> refs;
+    // TODO capture refs
     std::vector<TypeIdentifier> typeArguments;
-    auto next = it.repeat(namespaces, NsParser<Iterator>()) //
-                    .step(t, TypeName<Iterator>())          //
+
+    auto next = it.repeat(namespaces, NsParser<Iterator>())  //
+                    .step(t, TypeName<Iterator>())           //
+                    .repeat(refs, match::Either({"*", "&"})) //
                     .option(typeArguments, TypeArgumentParser<Iterator>());
     if (next) {
       result = TypeIdentifier(t, typeArguments, namespaces);

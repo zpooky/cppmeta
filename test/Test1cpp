@@ -224,10 +224,13 @@ class A {
   int x;
 }; // primary template
 
-// template <class T>
-// class A<T *> {
-//   long x;
-// }; // partial specializatio
+template <class T>
+class A<T *> {
+  long x;
+}; // partial specializatio
+
+class sda : public A<int*> {};
+
 } // namespace spec
 
 // auto fp11() -> void(*)(const std::string&);
