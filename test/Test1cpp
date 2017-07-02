@@ -135,7 +135,7 @@ class templatedclassint {};
 template <int *asd>
 class templatedclassPtr {
   // int (&pa)[5];
-  // void (*pf)(int, int *, int a, sd::TemplatedClass<int>);
+  // void (*pf)(int, int *, int a, sd::TemplatedClass<int>,int (&pa)[5]);
 };
 
 // template <int **asd>
@@ -163,29 +163,33 @@ extern void extFunc1(int **f, int &&);
 // static void staticFunc0(int **f);
 // static void staticFunc1(int **f, int &&);
 
+// template<class Axx, std::size_t Nexx>
 class TestClassFunctions {
-int function0();
-void function1();
+  int function0();
+  void function1();
 
-void function2(int);
-void function3(int f);
+  void function2(int);
+  void function3(int f);
 
-void function4(int f, int);
-void function5(int, int f);
+  void function4(int f, int);
+  void function5(int, int f);
 
-void function6(int *f, int *);
-void function7(int &, int *f);
+  void function6(int *f, int *);
+  void function7(int &, int *f);
 
-template <typename T = int>
-void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
+  template <typename T = int>
+  void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
+
+  TestClassFunctions();
+  TestClassFunctions(const TestClassFunctions &o);
+  TestClassFunctions(TestClassFunctions &&o);
+  ~TestClassFunctions();
+
+  const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
 };
-
-const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
 
 // fp return fp
 // int * (*(*(*foo)(char))(double))[3];
-
-class ClassWithFunctions {};
 
 template <typename T>
 struct SingleTemplate {};
@@ -202,14 +206,17 @@ template <typename T>
 class A {
   // int x;
 }; // primary template
+
 // template <class T>
 // class A<T *> {
 //   long x;
 // }; // partial specializatio
-}
+} // namespace spec
+
 // auto fp11() -> void(*)(const std::string&);
 // int printf(const char* fmt, ...);
-// int fwith_stuff(int a = 7, int *p = nullptr, int ( #<{(||)}># *(*x)(double)#<{(||)}>#   )[3] = nullptr);
+// int fwith_stuff(int a = 7, int *p = nullptr, int(#<{(||)}>#
+// *(*x)(double)#<{(||)}>#)[3] = nullptr);
 int fwith_stuff2(int (&arr)[1024]);
 // union UnionDestrcutor {
 //   std::string str;
@@ -217,7 +224,46 @@ int fwith_stuff2(int (&arr)[1024]);
 //   ~UnionDestrcutor() {
 //   }
 // };
+//
 // template <typename T1, typename T2>
 // static auto func(T1 o, T2 t) -> decltype(T1(0) + T2(0)) {
 //   return o + t;
 // }
+
+// template <typename U, typename T,
+//           typename = decltype(static_cast<T>(std::declval<U>()))>
+// T optional<T>::value_or(U &&fallback);
+//
+// template<typename Lambda>
+// using expression_type = decltype(std::declval<Lambda>()());
+//
+// #define LAZY(Expr) lazy_eval([&]() -> decltype((Expr)) { return Expr; })
+//
+
+// template <typename T, T *func>
+// struct function_caller {
+//   template <typename... Us>
+//   auto operator()(Us &&... us) const
+//       -> decltype(func(std::forward<Us...>(us...))) {
+//     return func(std::forward<Us...>(us...));
+//   }
+// };
+//
+// int main() {
+//   using good = unique_ptr<FILE, function_caller<int(FILE *), &fclose>>;
+//
+//   std::vector<good> files;
+//   files.reserve(64);
+//   std::generate_n(std::back_inserter(files), 64, [n = 1]() mutable {
+//     auto name = std::to_string(n++) + ".txt";
+//     return good{fopen(name.c_str(), "w")};
+//   });
+// }
+//
+// template <auto func>
+// struct function_caller {
+//   template <typename... Us>
+//   auto operator()(Us &&... us) const {
+//     return func(std::forward<Us...>(us...));
+//   }
+// };

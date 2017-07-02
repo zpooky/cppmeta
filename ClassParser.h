@@ -28,7 +28,7 @@ public:
               const String virtuals = "virtual";
               return match::either(
                   start,
-                  [&](StepType it) {
+                  [&result, &scopes, &virtuals](StepType it) {
                     Token scope;
                     Token virt;
                     TypeIdentifier from;
@@ -42,7 +42,7 @@ public:
                     }
                     return r;
                   },
-                  [&](StepType it) {
+                  [&result, &virtuals, &scopes](StepType it) {
                     Token scope;
                     Token virt;
                     TypeIdentifier from;
@@ -82,7 +82,8 @@ public:
         .option(templates, TemplateParser<Iterator>())           //
         .step(typeQualifier, match::Either({"class", "struct"})) //
         .step(name, TypeName<Iterator>())                        //
-        .option(inherits, InheritanceParser<Iterator>())         //
+        // TODO template specialization
+        .option(inherits, InheritanceParser<Iterator>()) //
         .step("{")
         .stepx([&name, &inherits, &templates, &capture](StepType it) {
           ClassAST tmp(name, inherits, templates);

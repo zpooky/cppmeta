@@ -9,6 +9,7 @@
 
 namespace ast {
 
+/*==================================================================*/
 /*FunctionDefinitionParser*/
 template <typename Iterator>
 class FunctionDefinitionParser
@@ -90,6 +91,7 @@ public:
   }
 };
 
+/*==================================================================*/
 // TODO operator, constructor,destructor
 template <typename Iterator>
 class OperatorTypeParser : public match::Base<Token, Iterator> {
@@ -99,6 +101,7 @@ public:
   using capture_type = Token;
 
   StepType operator()(capture_type &capture, StepType start) const {
+    using namespace match;
     Token base;
     Token tail;
     // TODO void* operator new[](std::size_t) = delete;
@@ -144,7 +147,7 @@ public:
                   // TODO capture
                   Token t;
                   return it //
-                      .step(t, match::Either({"delete", "new"}))
+                      .step(t, Either({"delete", "new"}))
                       .option([](StepType it) {
                         // TODO capture
                         return it      //
@@ -170,6 +173,7 @@ public:
   using capture_type = OperatorDeclarationAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
+    using namespace match;
     std::vector<tmp::TemplateTypenameAST> templates;
     Token virtualOp;
     Token operatorType;
@@ -179,21 +183,20 @@ public:
     bool pureVirtual = false;
     bool deleted = false;
     // TODO create ast
-    return start                                             //
-        .option(templates, TemplateParser<Iterator>())       //
-        .option(virtualOp, "virtual")                        //
-        .step(returnType, ParameterTypeParser<Iterator>())   //
-        .step(operatorType, OperatorTypeParser<Iterator>())  //
-        .step("(")                                           //
-        .repeat(paramters, ParameterParser<Iterator>(), ",") //
-        .step(")")                                           //
-        .repeat(postfix,
-                match::Either({"final", "const", "override", "noexcept"})) //
-        .option([&pureVirtual, &deleted](StepType it) {                    //
+    return start                                                             //
+        .option(templates, TemplateParser<Iterator>())                       //
+        .option(virtualOp, "virtual")                                        //
+        .step(returnType, ParameterTypeParser<Iterator>())                   //
+        .step(operatorType, OperatorTypeParser<Iterator>())                  //
+        .step("(")                                                           //
+        .repeat(paramters, ParameterParser<Iterator>(), ",")                 //
+        .step(")")                                                           //
+        .repeat(postfix, Either({"final", "const", "override", "noexcept"})) //
+        .option([&pureVirtual, &deleted](StepType it) {                      //
           Token end;
           auto ret = it             //
                          .step("=") //
-                         .step(end, match::Either({"0", "delete"}));
+                         .step(end, Either({"0", "delete"}));
           if (ret) {
             pureVirtual = end == "0";
             deleted = end == "delete";
@@ -219,6 +222,7 @@ public:
   }
 };
 
+/*==================================================================*/
 /*CtorDeclarationParser*/
 template <typename Iterator>
 class CtorDeclarationParser : public match::Base<CtorDeclarationAST, Iterator> {
@@ -228,8 +232,15 @@ public:
   using capture_type = CtorDeclarationAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
-    // TODO
-    return StepType(start.it, start.end, false);
+    // TODO capture
+    Token ctorType;
+    std::vector<ParameterAST> parameters;
+    return start                                              //
+        .step(ctorType, TypeName<Iterator>())                 //
+        .step("(")                                            //
+        .repeat(parameters, ParameterParser<Iterator>(), ",") //
+        .step(")")                                            //
+        .step(";");
   }
 };
 
@@ -247,6 +258,7 @@ public:
   }
 };
 
+/*==================================================================*/
 /*DtorDefinitionParser*/
 template <typename Iterator>
 class DtorDeclarationParser : public match::Base<DtorDeclarationAST, Iterator> {
@@ -256,8 +268,14 @@ public:
   using capture_type = DtorDeclarationAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
-    // TODO
-    return StepType(start.it, start.end, false);
+    // TODO capture
+    Token dtorType;
+    return start                              //
+        .step("~")                            //
+        .step(dtorType, TypeName<Iterator>()) //
+        .step("(")                            //
+        .step(")")                            //
+        .step(";");
   }
 };
 
