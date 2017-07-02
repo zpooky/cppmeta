@@ -72,7 +72,6 @@ public:
 
   StepType operator()(ClassAST &capture, StepType start) const {
     Token typeQualifier;
-    // match::Either qualifier({"class", "struct"});
     Token name;
 
     std::vector<InheritanceAST> inherits;
@@ -86,11 +85,35 @@ public:
         .option(inherits, InheritanceParser<Iterator>()) //
         .step("{")
         .stepx([&name, &inherits, &templates, &capture](StepType it) {
+          match::Either scopes({"public", "private", "protected"});
+
           ClassAST tmp(name, inherits, templates);
-          it = generic_scope(tmp, it);
-          if (it) {
-            capture = tmp;
+          ScopeAST *currentScope = &tmp.privateAST;
+
+        start:
+          it = generic_scope(*currentScope, it);
+          if (!it) {
+            return it;
           }
+
+          {
+            Token scopeToken;
+            auto scopeStart = it                            //
+                                  .step(scopeToken, scopes) //
+                                  .step(":");
+            if (scopeStart) {
+              if (scopeToken == "public") {
+                currentScope = &tmp.publicAST;
+              } else if (scopeToken == "private") {
+                currentScope = &tmp.privateAST;
+              } else if (scopeToken == "protected") {
+                currentScope = &tmp.protectedAST;
+              }
+              it = scopeStart;
+              goto start;
+            }
+          }
+          capture = tmp;
 
           return it;
         })         //

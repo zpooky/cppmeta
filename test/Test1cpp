@@ -168,14 +168,21 @@ class TestClassFunctions {
   int function0();
   void function1();
 
+public:
   void function2(int);
   void function3(int f);
 
+private:
   void function4(int f, int);
   void function5(int, int f);
 
   void function6(int *f, int *);
+
+protected:
+protected:
+public:
   void function7(int &, int *f);
+protected:
 
   template <typename T = int>
   void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
@@ -191,9 +198,11 @@ class TestClassFunctions {
 
   TestClassFunctions &operator=(int &&) = delete;
 
-  bool operator==(const TestClassFunctions&) const noexcept;
+  bool operator==(const TestClassFunctions &) const noexcept;
 
   const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
+
+private:
 };
 
 // fp return fp

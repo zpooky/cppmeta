@@ -6,18 +6,15 @@
 #include "parser.h"
 
 namespace ast {
+
 match::Step<sp::ArrayList<Token>::const_iterator> generic_scope( //
     ScopeAST &result,                                            //
     match::Step<sp::ArrayList<Token>::const_iterator> start      //
     ) {
+
   using Iterator = sp::ArrayList<Token>::const_iterator;
+
   while (start.it != start.end) {
-    // TODO
-    // match::Either scopes({"public", "private", "protected"});
-    // Token scope;
-    // auto scopeStart = it                       //
-    //                       .step(scope, scopes) //
-    //                       .step(":");
     {
       ast::ClassAST ast;
       auto next = start.step(ast, ast::ClassParser<Iterator>());
@@ -160,5 +157,6 @@ match::Step<sp::ArrayList<Token>::const_iterator> generic_scope( //
     return start;
   }
   return start;
-}
+} // generic_scope()
+
 } // namespace ast
