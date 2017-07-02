@@ -742,6 +742,7 @@ struct MemberDefinitionAST {
   }
 };
 
+
 /*ScopeAST*/
 struct ScopeAST {
   // types

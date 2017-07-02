@@ -15,7 +15,9 @@ class TemplateTypenameParser
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(tmp::TemplateTypenameAST &capture, StepType start) const {
+  using capture_type = tmp::TemplateTypenameAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
     return match::either(
         start,
         [&](StepType it) -> StepType { //
@@ -33,21 +35,22 @@ public:
                                .step(exp, TypeExpressionParser<Iterator>());
                          });
           if (ret) {
-            capture = tmp::TemplateTypenameAST(type);
+            // TODO
+            // capture = tmp::TemplateTypenameAST(type, exp);
           }
           return ret;
         },
         [&](StepType it) -> StepType { //
           ParameterEither type;
+          std::vector<Token> ref;
           Token name;
           ExpressionAST exp;
-          std::vector<Token> ref;
           // ex: std::Type<wasd<asd>>& label
           // ex: std::uint32_t = 32
-          auto ret = it                                                //
+          auto ret = it                                                 //
                          .step(type, ParameterEitherParser<Iterator>()) //
-                         .repeat(ref, match::Either({"&", "*"}))       //
-                         .option(name, VariableName<Iterator>())       //
+                         .repeat(ref, match::Either({"&", "*"}))        //
+                         .option(name, VariableName<Iterator>())        //
                          .option([&exp](StepType it) {
                            return it
                                .step("=") //
@@ -56,31 +59,10 @@ public:
           ;
           if (ret) {
             // TODO
-            // capture = tmp::TemplateTypenameAST(type, name);
+            // capture = tmp::TemplateTypenameAST(type, ref, name, exp);
           }
           return ret;
-        }
-        // ,
-        // [&](StepType it) -> StepType {
-        //   // ex: int wasd = 1
-        //   Token type;
-        //   TypeIdentifier variable;
-        //   auto ret = it                                              //
-        //                  .step(type)                                //
-        //                  .option(variable, VariableName<Iterator>()) //
-        //                  .option([&](StepType s) {
-        //                    ExpressionAST exp;
-        //                    return s
-        //                        .step("=") //
-        //                        .step(exp, ExpressionParser<Iterator>());
-        //                  });
-        //   if (ret) {
-        //     // TODO
-        //     // capture = tmp::TemplateTypenameAST(type, name);
-        //   }
-        //   return ret;
-        // }
-        );
+        });
   }
 }; // TypenamedParser
 
@@ -90,19 +72,16 @@ class TemplateParser
   using StepType = match::Step<Iterator>;
 
 public:
-  TemplateParser() {
-  }
+  using capture_type = std::vector<tmp::TemplateTypenameAST>;
 
-  match::Step<Iterator>
-  operator()(std::vector<tmp::TemplateTypenameAST> &result,
-             match::Step<Iterator> step) const {
+  StepType operator()(capture_type &result, StepType step) const {
     return step                                                  //
         .step("template")                                        //
         .step("<")                                               //
         .repeat(result, TemplateTypenameParser<Iterator>(), ",") //
         .step(">");
-  } // templated
-};  // TemplateParser
+  }
+}; // TemplateParser
 }
 
 #endif

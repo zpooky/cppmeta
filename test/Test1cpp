@@ -181,9 +181,17 @@ class TestClassFunctions {
   void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
 
   TestClassFunctions();
+  ~TestClassFunctions();
+
   TestClassFunctions(const TestClassFunctions &o);
   TestClassFunctions(TestClassFunctions &&o);
-  ~TestClassFunctions();
+
+  TestClassFunctions &operator=(const TestClassFunctions &o);
+  TestClassFunctions &operator=(TestClassFunctions &&);
+
+  TestClassFunctions &operator=(int &&) = delete;
+
+  bool operator==(const TestClassFunctions&) const noexcept;
 
   const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
 };
