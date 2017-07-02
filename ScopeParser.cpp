@@ -2,6 +2,7 @@
 
 #include "ClassParser.h"
 #include "EnumParser.h"
+#include "MemberParser.h"
 #include "parser.h"
 
 namespace ast {
@@ -141,6 +142,15 @@ match::Step<sp::ArrayList<Token>::const_iterator> generic_scope( //
     {
       ast::DtorDeclarationAST ast;
       auto next = start.step(ast, ast::DtorDeclarationParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
+    {
+      ast::MemberDefinitionAST ast;
+      auto next = start.step(ast, ast::MemberDefinitionParser<Iterator>());
       if (next.valid) {
         result.push_back(ast);
         start = next;

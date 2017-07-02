@@ -22,6 +22,9 @@ class FunctionPointerParser;
 /*TemplateCArrayParser*/
 template <typename>
 class TemplateCArrayParser;
+
+template <typename Iterator>
+class ParameterEitherParser;
 } // namespace ast
 
 namespace ast {
@@ -65,44 +68,19 @@ private:
 
 public:
   StepType operator()(ParameterAST &capture, StepType start) const {
-    ParameterEither wrappedType;
+    ParameterEither type;
     Token name;
     ExpressionAST v;
-    auto ret =
-        start //
-            .eitherx(
-                [&wrappedType](StepType it) {
-                  FunctionPointerAST type;
-                  auto ret = it.step(type, FunctionPointerParser<Iterator>());
-                  if (ret) {
-                    wrappedType = std::move(type);
-                  }
-                  return ret;
-                },
-                [&wrappedType](StepType it) {
-                  TemplateCArrayAST type;
-                  auto ret = it.step(type, TemplateCArrayParser<Iterator>());
-                  if (ret) {
-                    wrappedType = std::move(type);
-                  }
-                  return ret;
-                },
-                [&wrappedType](StepType it) { //
-                  ParameterTypeAST type;
-                  auto ret = it.step(type, ParameterTypeParser<Iterator>());
-                  if (ret) {
-                    wrappedType = std::move(type);
-                  }
-                  return ret;
-                })
-            .option(name, VariableName<Iterator>()) //
-            .option([&](StepType it) {              //
-              return it                             //
-                  .step("=")                        //
-                  .step(v, ExpressionParser<Iterator>());
-            }); //
+    auto ret = start //
+                   .step(type, ParameterEitherParser<Iterator>())
+                   .option(name, VariableName<Iterator>()) //
+                   .option([&](StepType it) {              //
+                     return it                             //
+                         .step("=")                        //
+                         .step(v, ExpressionParser<Iterator>());
+                   }); //
     if (ret) {
-      capture = ParameterAST(std::move(wrappedType), name, v);
+      capture = ParameterAST(std::move(type), name, v);
     }
     return ret;
   }
@@ -165,6 +143,45 @@ public:
         .step("]");
   }
 };
+
+/*ParameterEitherParser*/
+template <typename Iterator>
+class ParameterEitherParser : public match::Base<ParameterEither, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = ParameterEither;
+  StepType operator()(capture_type &capture, StepType start) const {
+    return start //
+        .eitherx(
+            [&capture](StepType it) {
+              FunctionPointerAST type;
+              auto ret = it.step(type, FunctionPointerParser<Iterator>());
+              if (ret) {
+                capture = std::move(type);
+              }
+              return ret;
+            },
+            [&capture](StepType it) {
+              TemplateCArrayAST type;
+              auto ret = it.step(type, TemplateCArrayParser<Iterator>());
+              if (ret) {
+                capture = std::move(type);
+              }
+              return ret;
+            },
+            [&capture](StepType it) { //
+              ParameterTypeAST type;
+              auto ret = it.step(type, ParameterTypeParser<Iterator>());
+              if (ret) {
+                capture = std::move(type);
+              }
+              return ret;
+            });
+  }
+};
+
 } // namespace ast
 
 #endif

@@ -134,8 +134,8 @@ class templatedclassint {};
 
 template <int *asd>
 class templatedclassPtr {
-  // int (&pa)[5];
-  // void (*pf)(int, int *, int a, sd::TemplatedClass<int>,int (&pa)[5]);
+  int (&pa)[5];
+  void (*pf)(int, int *, int a, sd::TemplatedClass<int>,int (&pa)[5]);
 };
 
 // template <int **asd>
@@ -204,7 +204,7 @@ class MapTemplateStuff {
 namespace spec {
 template <typename T>
 class A {
-  // int x;
+  int x;
 }; // primary template
 
 // template <class T>

@@ -727,6 +727,21 @@ struct UsingTypeAST {
 // struct StaticAST {
 // };
 
+/*MemberDefinitionAST*/
+struct MemberDefinitionAST {
+  ParameterEither type;
+  Token name;
+  MemberDefinitionAST() //
+      : type(),
+        name() {
+  }
+
+  MemberDefinitionAST(const ParameterEither &t, const Token &n) //
+      : type(t),
+        name(n) {
+  }
+};
+
 /*ScopeAST*/
 struct ScopeAST {
   // types
@@ -754,6 +769,8 @@ struct ScopeAST {
   // dtor
   std::vector<DtorDefinitionAST> dtorDefinitions;
   std::vector<DtorDeclarationAST> dtorDeclarations;
+  // member
+  std::vector<MemberDefinitionAST> memberDefinitions;
 
   /*ClassAST*/
   void push_back(const ClassAST &ast) {
@@ -828,9 +845,14 @@ struct ScopeAST {
   void push_back(const DtorDeclarationAST &ast) {
     dtorDeclarations.push_back(ast);
   }
+  /*MemberDefinition*/
+  void push_back(const MemberDefinitionAST &ast) {
+    memberDefinitions.push_back(ast);
+  }
 
   virtual yaml::yaml to_yaml() const {
     yaml::yaml result;
+    // TODO
     result.push_back("includes", yaml::List(includes));
     result.push_back("defines", yaml::List(defines));
     result.push_back("classes", yaml::List(classes));
@@ -846,9 +868,11 @@ struct ScopeAST {
 struct NamespaceAST : ScopeAST {
   Token key;
 
-  NamespaceAST() : key() {
+  NamespaceAST() //
+      : key() {
   }
-  NamespaceAST(const Token &p_key) : key(p_key) {
+  NamespaceAST(const Token &p_key) //
+      : key(p_key) {
   }
 
   // TODO
@@ -892,7 +916,7 @@ struct ClassAST : ScopeAST {
   }
 
   yaml::yaml to_yaml() const {
-    //TODO super.to_yaml()
+    // TODO super.to_yaml()
     yaml::yaml result;
     yaml::yaml dd;
     dd.push_back("name", name);
@@ -910,7 +934,7 @@ struct ClassAST : ScopeAST {
 
 namespace ast {
 /*FileAST*/
-struct FileAST : ScopeAST {//
+struct FileAST : ScopeAST { //
 };
 } // namespace ast
 
