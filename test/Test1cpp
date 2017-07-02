@@ -114,7 +114,7 @@ class SP_DDD_CLASS;
 
 NOTHING class NOTHING nothing {
   NOTHING
-  //   NOTHING NOTHING
+  NOTHING NOTHING
 } NOTHING;
 NOTHING
 
@@ -126,8 +126,8 @@ class TemplatedClass {};
 template <sd::TemplatedClass<int> &asd>
 class TemplatedClassRef {};
 
-// template <int (&pa)[5]>
-// struct CArrayConstantTemplate {};
+template <int (&pa)[5]>
+struct CArrayConstantTemplate {};
 
 template <int asd = 3>
 class templatedclassint {};
@@ -135,11 +135,11 @@ class templatedclassint {};
 template <int *asd>
 class templatedclassPtr {
   int (&pa)[5];
-  void (*pf)(int, int *, int a, sd::TemplatedClass<int>,int (&pa)[5]);
+  void (*pf)(int, int *, int a, sd::TemplatedClass<int>, int (&pa)[5]);
 };
 
-// template <int **asd>
-// class templatedclassPtrPtr {};
+template <int **asd>
+class templatedclassPtrPtr {};
 
 enum class EnumType1 : int {
   ONE,
@@ -151,19 +151,19 @@ enum class EnumType1 : int {
 // template <EnumType1 e = EnumType1::ONE>
 // class templatedclassEnum {};
 
-// template <int (&pa)[5]>
-// struct TemplateClassArrayTypeParam {};
-//
-// template <void (*pf)(int, int *, int a, sd::TemplatedClass<int>)>
-// struct TemplateClassFunctionPointerTypeParam {};
+template <int (&pa)[5]>
+struct TemplateClassArrayTypeParam {};
+
+template <void (*pf)(int, int *, int a, sd::TemplatedClass<int>)>
+struct TemplateClassFunctionPointerTypeParam {};
 
 extern void extFunc0(int **f);
 extern void extFunc1(int **f, int &&);
-//
+
 // static void staticFunc0(int **f);
 // static void staticFunc1(int **f, int &&);
 
-// template<class Axx, std::size_t Nexx>
+template <class Axx, std::size_t Nexx>
 class TestClassFunctions {
   int function0();
   void function1();

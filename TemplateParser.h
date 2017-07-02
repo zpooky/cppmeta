@@ -2,6 +2,7 @@
 #define SP_CPP_META_CLASS_TEMPLATE_H
 
 #include "ExpressionParser.h"
+#include "ParameterParser.h"
 #include "Pattern.h"
 #include "ast.h"
 #include "matcher.h"
@@ -26,7 +27,7 @@ public:
           auto ret = it                                                    //
                          .step(junk, match::Either({"class", "typename"})) //
                          .option(type, TypeName<Iterator>())               //
-                         .option([&](StepType s) {
+                         .option([&exp](StepType s) {
                            return s
                                .step("=") //
                                .step(exp, TypeExpressionParser<Iterator>());
@@ -37,46 +38,49 @@ public:
           return ret;
         },
         [&](StepType it) -> StepType { //
-          TypeIdentifier type;
+          ParameterEither type;
           Token name;
           ExpressionAST exp;
-          Token ref;
+          std::vector<Token> ref;
           // ex: std::Type<wasd<asd>>& label
+          // ex: std::uint32_t = 32
           auto ret = it                                                //
-                         .step(type, TypeIdentifierParser<Iterator>()) //
-                         .step(ref, match::Either({"&", "*"}))   //
-                         .option(name, VariableName<Iterator>()) //
-                         // .option([&](StepType s) {
-                         //   return s
-                         //       .step("=") //
-                         //       .step(exp, ExpressionParser<Iterator>());
-                         // });
-                         ;
-          if (ret) {
-            //TODO
-            // capture = tmp::TemplateTypenameAST(type, name);
-          }
-          return ret;
-        },
-        [&](StepType it) -> StepType {
-          // ex: int wasd = 1
-          Token type;
-          Token variable;
-          auto ret = it                                              //
-                         .step(type)                                //
-                         .option(variable, VariableName<Iterator>()) //
-                         .option([&](StepType s) {
-                           ExpressionAST exp;
-                           return s
+                         .step(type, ParameterEitherParser<Iterator>()) //
+                         .repeat(ref, match::Either({"&", "*"}))       //
+                         .option(name, VariableName<Iterator>())       //
+                         .option([&exp](StepType it) {
+                           return it
                                .step("=") //
                                .step(exp, ExpressionParser<Iterator>());
                          });
+          ;
           if (ret) {
             // TODO
             // capture = tmp::TemplateTypenameAST(type, name);
           }
           return ret;
-        });
+        }
+        // ,
+        // [&](StepType it) -> StepType {
+        //   // ex: int wasd = 1
+        //   Token type;
+        //   TypeIdentifier variable;
+        //   auto ret = it                                              //
+        //                  .step(type)                                //
+        //                  .option(variable, VariableName<Iterator>()) //
+        //                  .option([&](StepType s) {
+        //                    ExpressionAST exp;
+        //                    return s
+        //                        .step("=") //
+        //                        .step(exp, ExpressionParser<Iterator>());
+        //                  });
+        //   if (ret) {
+        //     // TODO
+        //     // capture = tmp::TemplateTypenameAST(type, name);
+        //   }
+        //   return ret;
+        // }
+        );
   }
 }; // TypenamedParser
 
