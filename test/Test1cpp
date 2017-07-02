@@ -182,8 +182,8 @@ protected:
 protected:
 public:
   void function7(int &, int *f);
-protected:
 
+protected:
   template <typename T = int>
   void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
 
@@ -235,13 +235,13 @@ class A {
 // int fwith_stuff(int a = 7, int *p = nullptr, int(#<{(||)}>#
 // *(*x)(double)#<{(||)}>#)[3] = nullptr);
 int fwith_stuff2(int (&arr)[1024]);
-// union UnionDestrcutor {
-//   std::string str;
-//   std::vector<int> vec;
-//   ~UnionDestrcutor() {
-//   }
-// };
-//
+
+union UnionDestrcutor {
+  std::string str;
+  std::vector<int> vec;
+  ~UnionDestrcutor();
+};
+
 // template <typename T1, typename T2>
 // static auto func(T1 o, T2 t) -> decltype(T1(0) + T2(0)) {
 //   return o + t;

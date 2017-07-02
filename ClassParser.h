@@ -71,27 +71,27 @@ public:
   using capture_type = ClassAST;
 
   StepType operator()(ClassAST &capture, StepType start) const {
-    Token typeQualifier;
+    Token tq;
     Token name;
 
     std::vector<InheritanceAST> inherits;
     std::vector<tmp::TemplateTypenameAST> templates;
 
     return start
-        .option(templates, TemplateParser<Iterator>())           //
-        .step(typeQualifier, match::Either({"class", "struct"})) //
-        .step(name, TypeName<Iterator>())                        //
+        .option(templates, TemplateParser<Iterator>())         //
+        .step(tq, match::Either({"union", "class", "struct"})) //
+        .step(name, TypeName<Iterator>())                      //
         // TODO template specialization
         .option(inherits, InheritanceParser<Iterator>()) //
         .step("{")
-        .stepx([&name, &inherits, &templates, &capture](StepType it) {
+        .stepx([&name, &inherits, &templates, &tq, &capture](StepType it) {
           match::Either scopes({"public", "private", "protected"});
 
           ClassAST tmp(name, inherits, templates);
-          ScopeAST *currentScope = &tmp.privateAST;
+          ScopeAST *curScope = tq == "class" ? &tmp.privateAST : &tmp.publicAST;
 
         start:
-          it = generic_scope(*currentScope, it);
+          it = generic_scope(*curScope, it);
           if (!it) {
             return it;
           }
@@ -103,11 +103,11 @@ public:
                                   .step(":");
             if (scopeStart) {
               if (scopeToken == "public") {
-                currentScope = &tmp.publicAST;
+                curScope = &tmp.publicAST;
               } else if (scopeToken == "private") {
-                currentScope = &tmp.privateAST;
+                curScope = &tmp.privateAST;
               } else if (scopeToken == "protected") {
-                currentScope = &tmp.protectedAST;
+                curScope = &tmp.protectedAST;
               }
               it = scopeStart;
               goto start;
