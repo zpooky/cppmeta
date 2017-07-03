@@ -205,6 +205,14 @@ protected:
 private:
 };
 
+// template <class Axx, std::size_t Nexx>
+// TestClassFunctions<Axx, Nexx>::TestClassFunctions() {
+// }
+//
+// template <class Axx, std::size_t Nexx>
+// void TestClassFunctions<Axx, Nexx>::function2(int) {
+// }
+
 // fp return fp
 // int * (*(*(*foo)(char))(double))[3];
 
@@ -229,7 +237,7 @@ class A<T *> {
   long x;
 }; // partial specializatio
 
-class sda : public A<int*> {};
+class sda : public A<int *> {};
 
 } // namespace spec
 
@@ -253,10 +261,10 @@ union UnionDestrcutor {
 // template <typename U, typename T,
 //           typename = decltype(static_cast<T>(std::declval<U>()))>
 // T optional<T>::value_or(U &&fallback);
-//
+
 // template<typename Lambda>
 // using expression_type = decltype(std::declval<Lambda>()());
-//
+
 // #define LAZY(Expr) lazy_eval([&]() -> decltype((Expr)) { return Expr; })
 //
 
@@ -279,11 +287,63 @@ union UnionDestrcutor {
 //     return good{fopen(name.c_str(), "w")};
 //   });
 // }
-//
+
 // template <auto func>
 // struct function_caller {
 //   template <typename... Us>
 //   auto operator()(Us &&... us) const {
 //     return func(std::forward<Us...>(us...));
 //   }
+// };
+
+// template<typename A, typename B>
+// auto add(A a, B b) {
+//     return a + b;
+// }
+
+// int mainx() {
+////     struct {} someVar;
+//
+//     add(someVar, 7);
+// }
+
+// template<typename A, typename B>
+// auto add(A a, B b) -> decltype(a + b) {
+//     return a + b;
+// }
+// void add(...) = delete;
+// template<typename T = void>
+// void add(...) {
+//     static_assert(!std::is_same<T, T>::value,
+//         "Cannot add! You must send types that can add together."
+//     );
+// }
+// template <unsigned int N>
+// struct factorial
+// {
+//   enum
+//   {
+//     value = N * factorial<N-1>:: value;
+//   };
+// };
+
+// template <>
+// struct factorial <0>
+// {
+//   enum { value = 1 };
+// };
+
+// template< size_t index_t,
+//           template<size_t> class T
+//         >
+// struct accumulate_value
+// {
+//   static const size_t value = T<index_t>::value
+//                             + accumulate_value<index_t-1,T>::value;
+// };
+
+// template<template<size_t> class T>
+// struct accumulate_value<0,T>
+// {
+//   static const size_t value = T<0>::value;
 // };

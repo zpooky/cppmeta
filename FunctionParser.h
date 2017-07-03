@@ -10,7 +10,7 @@
 namespace ast {
 
 /*==================================================================*/
-/*FunctionDefinitionParser*/
+/*FunctionDefintionParser*/
 template <typename Iterator>
 class FunctionDefinitionParser
     : public match::Base<FunctionDefinitionAST, Iterator> {
@@ -18,31 +18,6 @@ class FunctionDefinitionParser
 
 public:
   using capture_type = FunctionDefinitionAST;
-
-  StepType operator()(capture_type &capture, StepType step) const {
-    // TODO
-    // - void class::method()
-    // int f2(std::string str) noexcept try
-    // {
-    //     return std::stoi(str);
-    // }
-    // catch(const std::exception& e)
-    // {
-    //     std::cerr << "stoi() failed!\n";
-    //     return 0;
-    // }
-    return StepType(step.it, step.end, false);
-  }
-};
-
-/*FunctionDeclarationParser*/
-template <typename Iterator>
-class FunctionDeclarationParser
-    : public match::Base<FunctionDeclarationAST, Iterator> {
-  using StepType = match::Step<Iterator>;
-
-public:
-  using capture_type = FunctionDeclarationAST;
 
   StepType operator()(capture_type &capture, StepType step) const {
     // TODO
@@ -84,10 +59,35 @@ public:
         ;
     if (ret) {
       capture =
-          FunctionDeclarationAST(templates, prefix, returnType, functionName,
-                                 parameters, postfix, pureVirtual, deleted);
+          FunctionDefinitionAST(templates, prefix, returnType, functionName,
+                                parameters, postfix, pureVirtual, deleted);
     }
     return ret;
+  }
+};
+
+/*FunctionDeclarationParser*/
+template <typename Iterator>
+class FunctionDeclarationParser
+    : public match::Base<FunctionDeclarationAST, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = FunctionDeclarationAST;
+
+  StepType operator()(capture_type &capture, StepType step) const {
+    // TODO
+    // - void class::method()
+    // int f2(std::string str) noexcept try
+    // {
+    //     return std::stoi(str);
+    // }
+    // catch(const std::exception& e)
+    // {
+    //     std::cerr << "stoi() failed!\n";
+    //     return 0;
+    // }
+    return StepType(step.it, step.end, false);
   }
 };
 
@@ -165,12 +165,12 @@ public:
 
 /*OperatorDefinitionParser*/
 template <typename Iterator>
-class OperatorDeclarationParser
-    : public match::Base<OperatorDeclarationAST, Iterator> {
+class OperatorDefinitionParser
+    : public match::Base<OperatorDefinitionAST, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
-  using capture_type = OperatorDeclarationAST;
+  using capture_type = OperatorDefinitionAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
     using namespace match;
@@ -207,14 +207,14 @@ public:
   }
 };
 
-/*OperatorDefinitionParser*/
+/*OperatorDeclarationParser*/
 template <typename Iterator>
-class OperatorDefinitionParser
-    : public match::Base<OperatorDefinitionAST, Iterator> {
+class OperatorDeclarationParser
+    : public match::Base<OperatorDeclarationAST, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
-  using capture_type = OperatorDefinitionAST;
+  using capture_type = OperatorDeclarationAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO
@@ -223,13 +223,13 @@ public:
 };
 
 /*==================================================================*/
-/*CtorDeclarationParser*/
+/*CtorDefinitionParser*/
 template <typename Iterator>
-class CtorDeclarationParser : public match::Base<CtorDeclarationAST, Iterator> {
+class CtorDefinitionParser : public match::Base<CtorDefinitionAST, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
-  using capture_type = CtorDeclarationAST;
+  using capture_type = CtorDefinitionAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO capture
@@ -244,13 +244,13 @@ public:
   }
 };
 
-/*CtorDefinitionParser*/
+/*CtorDeclarationParser*/
 template <typename Iterator>
-class CtorDefinitionParser : public match::Base<CtorDefinitionAST, Iterator> {
+class CtorDeclarationParser : public match::Base<CtorDeclarationAST, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
-  using capture_type = CtorDefinitionAST;
+  using capture_type = CtorDeclarationAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO
@@ -261,11 +261,11 @@ public:
 /*==================================================================*/
 /*DtorDefinitionParser*/
 template <typename Iterator>
-class DtorDeclarationParser : public match::Base<DtorDeclarationAST, Iterator> {
+class DtorDefinitionParser : public match::Base<DtorDefinitionAST, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
-  using capture_type = DtorDeclarationAST;
+  using capture_type = DtorDefinitionAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO capture
@@ -279,13 +279,13 @@ public:
   }
 };
 
-/*DtorDefinitionParser*/
+/*DtorDeclarationParser*/
 template <typename Iterator>
-class DtorDefinitionParser : public match::Base<DtorDefinitionAST, Iterator> {
+class DtorDeclarationParser : public match::Base<DtorDeclarationAST, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
-  using capture_type = DtorDefinitionAST;
+  using capture_type = DtorDeclarationAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO

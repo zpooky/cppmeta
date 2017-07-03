@@ -493,7 +493,7 @@ struct ParameterAST {
 };
 
 /*FunctionDefinitionAST*/
-struct FunctionDeclarationAST {
+struct FunctionDefinitionAST {
   std::vector<tmp::TemplateTypenameAST> templates;
   std::vector<Token> prefix;
   ParameterTypeAST returnType;
@@ -503,14 +503,14 @@ struct FunctionDeclarationAST {
   bool pureVirtual;
   bool deleted;
   //
-  FunctionDeclarationAST()
+  FunctionDefinitionAST()
       : //
         templates(),
         prefix(), returnType(), functionName(), parameters(), postfix(),
         pureVirtual(false), deleted(false) {
   }
 
-  FunctionDeclarationAST(const std::vector<tmp::TemplateTypenameAST> &t,
+  FunctionDefinitionAST(const std::vector<tmp::TemplateTypenameAST> &t,
                          const std::vector<Token> &pre,
                          const ParameterTypeAST &ret, const Token &n,
                          const std::vector<ParameterAST> &params,
@@ -538,18 +538,18 @@ struct FunctionDeclarationAST {
 };
 
 /*FunctionDefinitionAST*/
-struct FunctionDefinitionAST {
+struct FunctionDeclarationAST {
   ParameterTypeAST returnType;
   Token functionName;
   std::vector<ParameterAST> parameters;
 
-  FunctionDefinitionAST() //
+  FunctionDeclarationAST() //
       : returnType(),
         functionName(),
         parameters() {
   }
 
-  FunctionDefinitionAST(const ParameterTypeAST &r, const Token n,
+  FunctionDeclarationAST(const ParameterTypeAST &r, const Token n,
                         const std::vector<ParameterAST> &p) //
       : returnType(r),
         functionName(n),
