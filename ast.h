@@ -511,10 +511,10 @@ struct FunctionDefinitionAST {
   }
 
   FunctionDefinitionAST(const std::vector<tmp::TemplateTypenameAST> &t,
-                         const std::vector<Token> &pre,
-                         const ParameterTypeAST &ret, const Token &n,
-                         const std::vector<ParameterAST> &params,
-                         const std::vector<Token> &post, bool pv, bool dd)
+                        const std::vector<Token> &pre,
+                        const ParameterTypeAST &ret, const Token &n,
+                        const std::vector<ParameterAST> &params,
+                        const std::vector<Token> &post, bool pv, bool dd)
       : //
         templates(t),
         prefix(pre), returnType(ret), functionName(n), parameters(params),
@@ -537,6 +537,9 @@ struct FunctionDefinitionAST {
   }
 };
 
+struct StackScopeAST { //
+};
+
 /*FunctionDefinitionAST*/
 struct FunctionDeclarationAST {
   ParameterTypeAST returnType;
@@ -550,7 +553,7 @@ struct FunctionDeclarationAST {
   }
 
   FunctionDeclarationAST(const ParameterTypeAST &r, const Token n,
-                        const std::vector<ParameterAST> &p) //
+                         const std::vector<ParameterAST> &p) //
       : returnType(r),
         functionName(n),
         parameters(p) {
@@ -741,7 +744,6 @@ struct MemberDefinitionAST {
         name(n) {
   }
 };
-
 
 /*ScopeAST*/
 struct ScopeAST {

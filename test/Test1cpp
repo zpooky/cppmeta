@@ -208,10 +208,10 @@ private:
 // template <class Axx, std::size_t Nexx>
 // TestClassFunctions<Axx, Nexx>::TestClassFunctions() {
 // }
-//
-// template <class Axx, std::size_t Nexx>
-// void TestClassFunctions<Axx, Nexx>::function2(int) {
-// }
+
+template <class Axx, std::size_t Nexx>
+void TestClassFunctions<Axx, Nexx>::function2(int) {
+}
 
 // fp return fp
 // int * (*(*(*foo)(char))(double))[3];

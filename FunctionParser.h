@@ -1,11 +1,89 @@
 #ifndef SP_CPP_META_CLASS_FUNCTION_PARSER_H
 #define SP_CPP_META_CLASS_FUNCTION_PARSER_H
 
+#include "FunctionBodyParser.h"
 #include "ParameterParser.h"
 #include "Pattern.h"
 #include "TemplateParser.h"
 #include "ast.h"
 #include "matcher.h"
+
+namespace {
+
+/*MemberDeclarationClassRefParser*/
+template <typename Iterator>
+class MemberDeclRefParser : public match::Base<ast::TypeIdentifier, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = ast::TypeIdentifier;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    capture_type tmpCapture;
+
+    auto ret = start                                                        //
+                   .step(tmpCapture, ast::TypeIdentifierParser<Iterator>()) //
+                   .step("::");
+    if (ret) {
+      capture = tmpCapture;
+    }
+
+    return ret;
+  }
+};
+
+template <typename Iterator>
+match::Step<Iterator> functionPrototype(ast::FunctionDefinitionAST &capture,
+                                        match::Step<Iterator> start) {
+  using StepType = match::Step<Iterator>;
+  // TODO
+  // int f(int a = 7, int *p = nullptr, int (*(*x)(double))[3] = nullptr);
+  // int printf(const char* fmt, ...);
+  // auto fp11() -> void(*)(const std::string&)
+  std::vector<tmp::TemplateTypenameAST> templates;
+  std::vector<Token> prefix;
+  ast::ParameterTypeAST returnType;
+  Token functionName;
+  std::vector<ast::ParameterAST> parameters;
+  std::vector<Token> postfix;
+  bool pureVirtual = false;
+  bool deleted = false;
+
+  // TODO capture memDeclRef
+  ast::TypeIdentifier memDeclRef;
+
+  auto ret =
+      start                                                   //
+          .option(templates, ast::TemplateParser<Iterator>()) //
+          .repeat(prefix, match::Either({"constexpr", "friend", "inline",
+                                         "virtual", "static", "extern"})) //
+          .step(returnType, ast::ParameterTypeParser<Iterator>())         //
+          .option(memDeclRef, MemberDeclRefParser<Iterator>())            //
+          .step(functionName, ast::FunctionName<Iterator>())              //
+          .step("(")                                                      //
+          .repeat(parameters, ast::ParameterParser<Iterator>(), ",")      //
+          .step(")")                                                      //
+          .repeat(postfix, match::Either({"final", "const", "override",
+                                          "noexcept", "try"})) //
+          .option([&pureVirtual, &deleted](StepType it) {      //
+            Token end;
+            auto ret = it             //
+                           .step("=") //
+                           .step(end, match::Either({"0", "delete"}));
+            if (ret) {
+              pureVirtual = end == "0";
+              deleted = end == "delete";
+            }
+            return ret;
+          });
+  if (ret) {
+    capture =
+        ast::FunctionDefinitionAST(templates, prefix, returnType, functionName,
+                                   parameters, postfix, pureVirtual, deleted);
+  }
+  return ret;
+}
+}
 
 namespace ast {
 
@@ -19,50 +97,8 @@ class FunctionDefinitionParser
 public:
   using capture_type = FunctionDefinitionAST;
 
-  StepType operator()(capture_type &capture, StepType step) const {
-    // TODO
-    // int f(int a = 7, int *p = nullptr, int (*(*x)(double))[3] = nullptr);
-    // int printf(const char* fmt, ...);
-    // auto fp11() -> void(*)(const std::string&)
-    std::vector<tmp::TemplateTypenameAST> templates;
-    std::vector<Token> prefix;
-    ParameterTypeAST returnType;
-    Token functionName;
-    std::vector<ParameterAST> parameters;
-    std::vector<Token> postfix;
-    bool pureVirtual = false;
-    bool deleted = false;
-
-    auto ret = step                                               //
-                   .option(templates, TemplateParser<Iterator>()) //
-                   .repeat(prefix, match::Either({"friend", "inline", "virtual",
-                                                  "static", "extern"}))  //
-                   .step(returnType, ParameterTypeParser<Iterator>())    //
-                   .step(functionName, FunctionName<Iterator>())         //
-                   .step("(")                                            //
-                   .repeat(parameters, ParameterParser<Iterator>(), ",") //
-                   .step(")")                                            //
-                   .repeat(postfix, match::Either({"final", "const", "override",
-                                                   "noexcept"}))   //
-                   .option([&pureVirtual, &deleted](StepType it) { //
-                     Token end;
-                     auto ret = it             //
-                                    .step("=") //
-                                    .step(end, match::Either({"0", "delete"}));
-                     if (ret) {
-                       pureVirtual = end == "0";
-                       deleted = end == "delete";
-                     }
-                     return ret;
-                   })
-                   .step(";") //
-        ;
-    if (ret) {
-      capture =
-          FunctionDefinitionAST(templates, prefix, returnType, functionName,
-                                parameters, postfix, pureVirtual, deleted);
-    }
-    return ret;
+  StepType operator()(capture_type &capture, StepType start) const {
+    return functionPrototype(capture, start).step(";");
   }
 };
 
@@ -75,7 +111,7 @@ class FunctionDeclarationParser
 public:
   using capture_type = FunctionDeclarationAST;
 
-  StepType operator()(capture_type &capture, StepType step) const {
+  StepType operator()(capture_type &capture, StepType start) const {
     // TODO
     // - void class::method()
     // int f2(std::string str) noexcept try
@@ -87,7 +123,33 @@ public:
     //     std::cerr << "stoi() failed!\n";
     //     return 0;
     // }
-    return StepType(step.it, step.end, false);
+    // TODO caputre
+    ast::FunctionDefinitionAST def;
+    ast::StackScopeAST body;
+    ast::StackScopeAST catchBody;
+
+    auto prototype =
+        functionPrototype(def, start) //
+            .step("{")
+            .step(body, StackScopeParser<Iterator>()) //
+            .step("}")                                //
+            .option([&catchBody](StepType catchIt) {            //
+              // catch( ... ){ ... }
+              // TODO capture
+              ParameterAST catchParam;
+              return catchIt                                          //
+                  .step("catch")                                      //
+                  .step("(")                                          //
+                  .step(catchParam, ast::ParameterParser<Iterator>()) //
+                  .step(")")                                          //
+                  .step("{")                                          //
+                  .step(catchBody, ast::StackScopeParser<Iterator>()) //
+                  .step("}");
+            }) //
+        ;
+    if (prototype) {
+    }
+    return prototype;
   }
 };
 
