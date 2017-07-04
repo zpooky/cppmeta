@@ -209,6 +209,10 @@ template <class Axx, std::size_t Nexx>
 TestClassFunctions<Axx, Nexx>::TestClassFunctions() {
 }
 
+template <class Axx, std::size_t Nexx>
+TestClassFunctions<Axx, Nexx>::~TestClassFunctions() {
+}
+
 // template <class Axx, std::size_t Nexx>
 // bool TestClassFunctions<Axx, Nexx>::operator==(const TestClassFunctions &)
 // const
