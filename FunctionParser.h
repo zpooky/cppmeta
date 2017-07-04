@@ -10,6 +10,7 @@
 
 namespace {
 
+/*==================================================================*/
 /*MemberDeclarationClassRefParser*/
 template <typename Iterator>
 class MemberDeclRefParser : public match::Base<ast::TypeIdentifier, Iterator> {
@@ -32,6 +33,7 @@ public:
   }
 };
 
+/*==================================================================*/
 template <typename Iterator>
 match::Step<Iterator> functionPrototype(ast::FunctionDefinitionAST &capture,
                                         match::Step<Iterator> start) {
@@ -82,12 +84,11 @@ match::Step<Iterator> functionPrototype(ast::FunctionDefinitionAST &capture,
                                    parameters, postfix, pureVirtual, deleted);
   }
   return ret;
-}
-}
+} // functionPrototype()
+} // namespace
 
 namespace ast {
 
-/*==================================================================*/
 /*FunctionDefintionParser*/
 template <typename Iterator>
 class FunctionDefinitionParser
@@ -133,7 +134,7 @@ public:
             .step("{")
             .step(body, StackScopeParser<Iterator>()) //
             .step("}")                                //
-            .option([&catchBody](StepType catchIt) {            //
+            .option([&catchBody](StepType catchIt) {  //
               // catch( ... ){ ... }
               // TODO capture
               ParameterAST catchParam;
@@ -152,9 +153,10 @@ public:
     return prototype;
   }
 };
+} // namespace ast
 
 /*==================================================================*/
-// TODO operator, constructor,destructor
+namespace ast {
 template <typename Iterator>
 class OperatorTypeParser : public match::Base<Token, Iterator> {
   using StepType = match::Step<Iterator>;
@@ -223,8 +225,55 @@ public:
     }
     return ret;
   }
-};
+}; // class OperatorTypeParser
+} // namespace ast
 
+namespace {
+template <typename Iterator>
+match::Step<Iterator> operatorPrototype(ast::OperatorDefinitionAST &capture,
+                                        match::Step<Iterator> start) {
+  using namespace match;
+  using StepType = match::Step<Iterator>;
+
+  // TODO capture
+  std::vector<tmp::TemplateTypenameAST> templates;
+  Token virtualOp;
+  Token operatorType;
+  ast::ParameterTypeAST returnType;
+  ast::TypeIdentifier memDeclRef;
+  std::vector<ast::ParameterAST> paramters;
+  std::vector<Token> postfix;
+
+  bool pureVirtual = false;
+  bool deleted = false;
+  bool defaulted = false;
+
+  return start                                                             //
+      .option(templates, ast::TemplateParser<Iterator>())                  //
+      .option(virtualOp, Either({"constexpr", "virtual"}))                 //
+      .step(returnType, ast::ParameterTypeParser<Iterator>())              //
+      .option(memDeclRef, MemberDeclRefParser<Iterator>())                 //
+      .step(operatorType, ast::OperatorTypeParser<Iterator>())             //
+      .step("(")                                                           //
+      .repeat(paramters, ast::ParameterParser<Iterator>(), ",")            //
+      .step(")")                                                           //
+      .repeat(postfix, Either({"final", "const", "override", "noexcept"})) //
+      .option([&pureVirtual, &deleted, &defaulted](StepType it) {          //
+        Token end;
+        auto ret = it             //
+                       .step("=") //
+                       .step(end, Either({"0", "delete", "default"}));
+        if (ret) {
+          pureVirtual = end == "0";
+          deleted = end == "delete";
+          defaulted = end == "default";
+        }
+        return ret;
+      });
+} // operatorPrototype()
+} // namespace
+
+namespace ast {
 /*OperatorDefinitionParser*/
 template <typename Iterator>
 class OperatorDefinitionParser
@@ -235,37 +284,7 @@ public:
   using capture_type = OperatorDefinitionAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
-    using namespace match;
-    std::vector<tmp::TemplateTypenameAST> templates;
-    Token virtualOp;
-    Token operatorType;
-    ParameterTypeAST returnType;
-    std::vector<ParameterAST> paramters;
-    std::vector<Token> postfix;
-    bool pureVirtual = false;
-    bool deleted = false;
-    // TODO create ast
-    return start                                                             //
-        .option(templates, TemplateParser<Iterator>())                       //
-        .option(virtualOp, "virtual")                                        //
-        .step(returnType, ParameterTypeParser<Iterator>())                   //
-        .step(operatorType, OperatorTypeParser<Iterator>())                  //
-        .step("(")                                                           //
-        .repeat(paramters, ParameterParser<Iterator>(), ",")                 //
-        .step(")")                                                           //
-        .repeat(postfix, Either({"final", "const", "override", "noexcept"})) //
-        .option([&pureVirtual, &deleted](StepType it) {                      //
-          Token end;
-          auto ret = it             //
-                         .step("=") //
-                         .step(end, Either({"0", "delete"}));
-          if (ret) {
-            pureVirtual = end == "0";
-            deleted = end == "delete";
-          }
-          return ret;
-        }) //
-        .step(";");
+    return operatorPrototype(capture, start).step(";");
   }
 };
 
@@ -279,8 +298,17 @@ public:
   using capture_type = OperatorDeclarationAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
-    // TODO
-    return StepType(start.it, start.end, false);
+    // TODO capture
+    OperatorDefinitionAST defAST;
+    return                               //
+        operatorPrototype(defAST, start) //
+            .step("{")                   //
+            .stepx([](StepType start) {  //
+              StackScopeAST stackAST;
+              return start //
+                  .step(stackAST, StackScopeParser<Iterator>());
+            }) //
+            .step("}");
   }
 };
 

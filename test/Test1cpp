@@ -206,6 +206,12 @@ private:
 };
 
 // template <class Axx, std::size_t Nexx>
+// bool TestClassFunctions<Axx, Nexx>::operator==(const TestClassFunctions &) const
+//     noexcept {
+//   return false;
+// }
+
+// template <class Axx, std::size_t Nexx>
 // TestClassFunctions<Axx, Nexx>::TestClassFunctions() {
 // }
 
@@ -251,6 +257,9 @@ union UnionDestrcutor {
   std::string str;
   std::vector<int> vec;
   ~UnionDestrcutor();
+
+  // ~UnionDestrcutor() {
+  // }
 };
 
 // template <typename T1, typename T2>
@@ -318,6 +327,7 @@ union UnionDestrcutor {
 //         "Cannot add! You must send types that can add together."
 //     );
 // }
+
 // template <unsigned int N>
 // struct factorial
 // {
