@@ -318,6 +318,7 @@ private:
     TheParamType<ParameterTypeAST> type;
     TheParamType<FunctionPointerAST> fp;
     TheParamType<TemplateCArrayAST> carr;
+    //TODO type expression
 
     // alignas(alignof(ParameterTypeAST)) uint8_t
     // type[sizeof(ParameterTypeAST)];
@@ -496,7 +497,7 @@ struct ParameterAST {
 struct FunctionDefinitionAST {
   std::vector<tmp::TemplateTypenameAST> templates;
   std::vector<Token> prefix;
-  ParameterTypeAST returnType;
+  ReturnTypeAST returnType;
   Token functionName;
   std::vector<ParameterAST> parameters;
   std::vector<Token> postfix;
@@ -512,7 +513,7 @@ struct FunctionDefinitionAST {
 
   FunctionDefinitionAST(const std::vector<tmp::TemplateTypenameAST> &t,
                         const std::vector<Token> &pre,
-                        const ParameterTypeAST &ret, const Token &n,
+                        const ReturnTypeAST &ret, const Token &n,
                         const std::vector<ParameterAST> &params,
                         const std::vector<Token> &post, bool pv, bool dd)
       : //
@@ -535,9 +536,6 @@ struct FunctionDefinitionAST {
     // result.push_back("deleted", deleted);
     return result;
   }
-};
-
-struct StackScopeAST { //
 };
 
 /*FunctionDefinitionAST*/
@@ -612,13 +610,6 @@ struct UsingNamespaceAST {
   }
 };
 
-struct FunctionInvocationAST {
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    return result;
-  }
-};
 
 struct EnumValueAST {
   Token key;

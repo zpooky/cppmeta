@@ -9,6 +9,9 @@
 #include "matcher.h"
 
 namespace {
+// TODO throw(,...)
+// constructor() : wtf(dd) {}
+// all function&operator = default/delete;
 
 /*==================================================================*/
 /*MemberDeclarationClassRefParser*/
@@ -38,13 +41,14 @@ template <typename Iterator>
 match::Step<Iterator> functionPrototype(ast::FunctionDefinitionAST &capture,
                                         match::Step<Iterator> start) {
   using StepType = match::Step<Iterator>;
+  using namespace match;
   // TODO
   // int f(int a = 7, int *p = nullptr, int (*(*x)(double))[3] = nullptr);
   // int printf(const char* fmt, ...);
   // auto fp11() -> void(*)(const std::string&)
   std::vector<tmp::TemplateTypenameAST> templates;
   std::vector<Token> prefix;
-  ast::ParameterTypeAST returnType;
+  ast::ReturnTypeAST returnType;
   Token functionName;
   std::vector<ast::ParameterAST> parameters;
   std::vector<Token> postfix;
@@ -54,17 +58,17 @@ match::Step<Iterator> functionPrototype(ast::FunctionDefinitionAST &capture,
   // TODO capture memDeclRef
   ast::TypeIdentifier memDeclRef;
 
-  auto ret =
-      start                                                   //
+  auto ret = //
+      start  //
           .option(templates, ast::TemplateParser<Iterator>()) //
-          .repeat(prefix, match::Either({"constexpr", "friend", "inline",
-                                         "virtual", "static", "extern"})) //
-          .step(returnType, ast::ParameterTypeParser<Iterator>())         //
+          .repeat(prefix, Either({"constexpr", "friend", "inline", "virtual",
+                                  "static", "extern"}))        //
+          .step(returnType, ast::ReturnTypeParser<Iterator>()) //
           .option(memDeclRef, MemberDeclRefParser<Iterator>())            //
-          .step(functionName, ast::FunctionName<Iterator>())              //
-          .step("(")                                                      //
-          .repeat(parameters, ast::ParameterParser<Iterator>(), ",")      //
-          .step(")")                                                      //
+          .step(functionName, ast::FunctionName<Iterator>())         //
+          .step("(")                                                 //
+          .repeat(parameters, ast::ParameterParser<Iterator>(), ",") //
+          .step(")")                                                 //
           .repeat(postfix, match::Either({"final", "const", "override",
                                           "noexcept", "try"})) //
           .option([&pureVirtual, &deleted](StepType it) {      //
@@ -126,13 +130,13 @@ public:
     // }
     // TODO caputre
     ast::FunctionDefinitionAST def;
-    ast::StackScopeAST body;
-    ast::StackScopeAST catchBody;
+    stk::ScopeAST body;
+    stk::ScopeAST catchBody;
 
     auto prototype =
         functionPrototype(def, start) //
             .step("{")
-            .step(body, StackScopeParser<Iterator>()) //
+            .step(body, stk::ScopeParser<Iterator>()) //
             .step("}")                                //
             .option([&catchBody](StepType catchIt) {  //
               // catch( ... ){ ... }
@@ -144,7 +148,7 @@ public:
                   .step(catchParam, ast::ParameterParser<Iterator>()) //
                   .step(")")                                          //
                   .step("{")                                          //
-                  .step(catchBody, ast::StackScopeParser<Iterator>()) //
+                  .step(catchBody, stk::ScopeParser<Iterator>())      //
                   .step("}");
             }) //
         ;
@@ -239,7 +243,7 @@ match::Step<Iterator> operatorPrototype(ast::OperatorDefinitionAST &capture,
   std::vector<tmp::TemplateTypenameAST> templates;
   Token virtualOp;
   Token operatorType;
-  ast::ParameterTypeAST returnType;
+  ast::ReturnTypeAST returnType;
   ast::TypeIdentifier memDeclRef;
   std::vector<ast::ParameterAST> paramters;
   std::vector<Token> postfix;
@@ -251,7 +255,7 @@ match::Step<Iterator> operatorPrototype(ast::OperatorDefinitionAST &capture,
   return start                                                             //
       .option(templates, ast::TemplateParser<Iterator>())                  //
       .option(virtualOp, Either({"constexpr", "virtual"}))                 //
-      .step(returnType, ast::ParameterTypeParser<Iterator>())              //
+      .step(returnType, ast::ReturnTypeParser<Iterator>())                 //
       .option(memDeclRef, MemberDeclRefParser<Iterator>())                 //
       .step(operatorType, ast::OperatorTypeParser<Iterator>())             //
       .step("(")                                                           //
@@ -297,16 +301,22 @@ class OperatorDeclarationParser
 public:
   using capture_type = OperatorDeclarationAST;
 
-  StepType operator()(capture_type &capture, StepType start) const {
+  StepType operator()(capture_type &, StepType start) const {
     // TODO capture
     OperatorDefinitionAST defAST;
     return                               //
         operatorPrototype(defAST, start) //
-            .step("{")                   //
-            .stepx([](StepType start) {  //
-              StackScopeAST stackAST;
+            .option([](StepType it) {    //
+              // TODO
+              return it      //
+                  .step(":") //
+                  ;
+            })                          //
+            .step("{")                  //
+            .stepx([](StepType start) { //
+              stk::ScopeAST stackAST;
               return start //
-                  .step(stackAST, StackScopeParser<Iterator>());
+                  .step(stackAST, stk::ScopeParser<Iterator>());
             }) //
             .step("}");
   }
@@ -323,13 +333,13 @@ class CtorDefinitionParser : public match::Base<CtorDefinitionAST, Iterator> {
 public:
   using capture_type = CtorDefinitionAST;
 
-  StepType operator()(capture_type &capture, StepType start) const {
+  StepType operator()(capture_type &, StepType start) const {
     // TODO capture
     ast::TypeIdentifier memDeclRef;
     Token ctorType;
     std::vector<ast::ParameterAST> parameters;
-    return start                                                   //
-        .option(memDeclRef, MemberDeclRefParser<Iterator>())       //
+    return start //
+        // .option(memDeclRef, MemberDeclRefParser<Iterator>())       //
         .step(ctorType, ast::TypeName<Iterator>())                 //
         .step("(")                                                 //
         .repeat(parameters, ast::ParameterParser<Iterator>(), ",") //
@@ -346,7 +356,7 @@ class CtorDeclarationParser : public match::Base<CtorDeclarationAST, Iterator> {
 public:
   using capture_type = CtorDeclarationAST;
 
-  StepType operator()(capture_type &capture, StepType start) const {
+  StepType operator()(capture_type &, StepType start) const {
     // TODO capture
     std::vector<tmp::TemplateTypenameAST> templates;
     TypeIdentifier memDeclRef;
@@ -362,9 +372,9 @@ public:
         .step(")")                                                 //
         .step("{")                                                 //
         .stepx([](StepType start) {                                //
-          StackScopeAST stackAST;
+          stk::ScopeAST stackAST;
           return start //
-              .step(stackAST, StackScopeParser<Iterator>());
+              .step(stackAST, stk::ScopeParser<Iterator>());
         }) //
         .step("}");
   }
@@ -381,7 +391,7 @@ class DtorDefinitionParser : public match::Base<DtorDefinitionAST, Iterator> {
 public:
   using capture_type = DtorDefinitionAST;
 
-  StepType operator()(capture_type &capture, StepType start) const {
+  StepType operator()(capture_type &, StepType start) const {
     // TODO capture
     Token dtorType;
     return start                              //
@@ -401,7 +411,7 @@ class DtorDeclarationParser : public match::Base<DtorDeclarationAST, Iterator> {
 public:
   using capture_type = DtorDeclarationAST;
 
-  StepType operator()(capture_type &capture, StepType start) const {
+  StepType operator()(capture_type &, StepType start) const {
     // TODO capture
     std::vector<tmp::TemplateTypenameAST> templates;
     TypeIdentifier memDeclRef;
@@ -417,9 +427,9 @@ public:
         .step(")")                                           //
         .step("{")                                           //
         .stepx([](StepType start) {                          //
-          StackScopeAST stackAST;
+          stk::ScopeAST stackAST;
           return start //
-              .step(stackAST, StackScopeParser<Iterator>());
+              .step(stackAST, stk::ScopeParser<Iterator>());
         }) //
         .step("}");
   }

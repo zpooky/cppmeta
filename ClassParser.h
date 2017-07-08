@@ -79,6 +79,7 @@ public:
 
     //TODO capture templateSpecialization
     std::vector<TypeIdentifier> templateSpec;
+    //TODO struct SchemaValidatorContext final : public base {
 
     return start
         .option(templates, TemplateParser<Iterator>())         //

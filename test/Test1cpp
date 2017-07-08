@@ -205,23 +205,25 @@ protected:
 private:
 };
 
-template <class Axx, std::size_t Nexx>
-TestClassFunctions<Axx, Nexx>::TestClassFunctions() {
-}
+// template <class Axx, std::size_t Nexx>
+// TestClassFunctions<Axx, Nexx>::TestClassFunctions() {
+// }
 
 template <class Axx, std::size_t Nexx>
 TestClassFunctions<Axx, Nexx>::~TestClassFunctions() {
 }
 
-// template <class Axx, std::size_t Nexx>
-// bool TestClassFunctions<Axx, Nexx>::operator==(const TestClassFunctions &)
-// const
-//     noexcept {
-//   return false;
-// }
+template <class Axx, std::size_t Nexx>
+bool TestClassFunctions<Axx, Nexx>::operator==(const TestClassFunctions &) const
+    noexcept {
+  // return false;
+}
 
 template <class Axx, std::size_t Nexx>
 void TestClassFunctions<Axx, Nexx>::function2(int) {
+}
+
+void function2(int) {
 }
 
 // fp return fp
@@ -266,6 +268,10 @@ union UnionDestrcutor {
   // ~UnionDestrcutor() {
   // }
 };
+
+// namespace detail {
+// extern const uint8_t kSelectInByte[2048];
+// } // namespace detail;
 
 // template <typename T1, typename T2>
 // static auto func(T1 o, T2 t) -> decltype(T1(0) + T2(0)) {

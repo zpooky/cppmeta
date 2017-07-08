@@ -1,7 +1,15 @@
-void extFunc1(int **f, int &&);
+// void extFunc1(int **f, int &&);
+//
+// const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
+// void func(char *(&dd)(char, int, float));
+//
+// template <typename T = int>
+// void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
 
-const int &operator/**/[/*[]*/] /*(String)*/(int i) const;
-void func(char *(&dd)(char, int, float));
+// void function2(int);
+void function2(int) {
+}
 
-template <typename T = int>
-void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
+template <class Axx, std::size_t Nexx>
+void TestClassFunctions<Axx, Nexx>::function2(int) {
+}

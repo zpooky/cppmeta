@@ -35,7 +35,9 @@ private:
   using StepType = match::Step<Iterator>;
 
 public:
-  StepType operator()(ParameterTypeAST &capture, StepType start) const {
+  using capture_type = ParameterTypeAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
     std::vector<Token> typeQualifiers;
     TypeIdentifier type;
     std::vector<Token> refs;
@@ -56,6 +58,24 @@ public:
     ;
     if (ret) {
       capture = ParameterTypeAST(typeQualifiers, type, refs, ptrs);
+    }
+    return ret;
+  }
+};
+
+template <typename Iterator>
+class ReturnTypeParser : public match::Base<ReturnTypeAST, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = ReturnTypeAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    ParameterEither type;
+    auto ret = start.step(type, ParameterEitherParser<Iterator>());
+    if (ret) {
+      capture = capture_type(std::move(type));
     }
     return ret;
   }
