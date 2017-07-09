@@ -90,14 +90,14 @@ public:
   StepType operator()(ParameterAST &capture, StepType start) const {
     ParameterEither type;
     Token name;
-    ExpressionAST v;
+    stk::ExpressionAST v;
     auto ret = start //
                    .step(type, ParameterEitherParser<Iterator>())
                    .option(name, VariableName<Iterator>()) //
                    .option([&](StepType it) {              //
                      return it                             //
                          .step("=")                        //
-                         .step(v, ExpressionParser<Iterator>());
+                         .step(v, stk::ExpressionParser<Iterator>());
                    }); //
     if (ret) {
       capture = ParameterAST(std::move(type), name, v);

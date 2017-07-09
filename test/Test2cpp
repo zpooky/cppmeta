@@ -7,9 +7,10 @@
 // void tempFunc(T f, T &f1, const T &f2, T *f3, const T *f4);
 
 // void function2(int);
-void function2(int) {
-}
+// void function2(int) {
+// }
 
 template <class Axx, std::size_t Nexx>
 void TestClassFunctions<Axx, Nexx>::function2(int) {
+  return;
 }

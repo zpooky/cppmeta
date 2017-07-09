@@ -16,7 +16,49 @@ struct Type;
 struct EnumAST;
 struct ParameterAST;
 struct ParameterTypeAST;
+} // namespace ast
 
+namespace stk {
+/*TypeExpressionAST*/
+struct TypeExpressionAST {
+  std::vector<Token> tokens;
+
+  template <typename... Tail>
+  TypeExpressionAST(Tail &&... tail) //
+      : tokens{std::forward<Token>(tail)...} {
+  }
+  //
+};
+
+/*ExpressionAST*/
+struct ExpressionAST {
+  std::vector<Token> tokens;
+  ExpressionAST() //
+      : tokens() {
+  }
+
+  ExpressionAST(const ExpressionAST &o) //
+      : tokens(o.tokens) {
+  }
+
+  ExpressionAST(const std::vector<Token> &o) //
+      : tokens(o) {
+  }
+
+  // template <typename... Tail>
+  // ExpressionAST(Tail &&... tail) //
+  //     : tokens{std::forward<Token>(tail)...} {
+  // }
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    result.push_back("exp", yaml::List(tokens));
+    return result;
+  }
+};
+} // namespace stk
+
+namespace ast {
 /*TemplateAST*/
 struct Typed {
   Token type;
@@ -204,44 +246,6 @@ struct ParameterTypeAST {
   //
   yaml::yaml to_yaml() const {
     yaml::yaml result;
-    return result;
-  }
-};
-
-/*TypeExpressionAST*/
-struct TypeExpressionAST {
-  std::vector<Token> tokens;
-
-  template <typename... Tail>
-  TypeExpressionAST(Tail &&... tail) //
-      : tokens{std::forward<Token>(tail)...} {
-  }
-  //
-};
-
-/*ExpressionAST*/
-struct ExpressionAST {
-  std::vector<Token> tokens;
-  ExpressionAST() //
-      : tokens() {
-  }
-
-  ExpressionAST(const ExpressionAST &o) //
-      : tokens(o.tokens) {
-  }
-
-  ExpressionAST(const std::vector<Token> &o) //
-      : tokens(o) {
-  }
-
-  // template <typename... Tail>
-  // ExpressionAST(Tail &&... tail) //
-  //     : tokens{std::forward<Token>(tail)...} {
-  // }
-
-  yaml::yaml to_yaml() const {
-    yaml::yaml result;
-    result.push_back("exp", yaml::List(tokens));
     return result;
   }
 };
@@ -437,7 +441,7 @@ struct ReturnTypeAST {
 struct ParameterAST {
   ParameterEither type;
   Token name;
-  ExpressionAST defaultValue;
+  stk::ExpressionAST defaultValue;
 
   ParameterAST() //
       : type(), name(), defaultValue() {
@@ -452,7 +456,7 @@ struct ParameterAST {
 
   template <typename T>
   ParameterAST(T &&o, const Token &n,
-               const ExpressionAST &dv) //
+               const stk::ExpressionAST &dv) //
       : type(std::forward<T>(o)), name(n), defaultValue(dv) {
   }
 
@@ -583,7 +587,7 @@ struct UsingNamespaceAST {
 
 struct EnumValueAST {
   Token key;
-  ExpressionAST value;
+  stk::ExpressionAST value;
 
   EnumValueAST()
       : //
@@ -591,7 +595,7 @@ struct EnumValueAST {
         value() {
   }
 
-  EnumValueAST(const Token &k, const ExpressionAST &v) //
+  EnumValueAST(const Token &k, const stk::ExpressionAST &v) //
       : key(k), value(v) {
   }
 
@@ -907,7 +911,60 @@ struct Class {
    */
 };
 }
+namespace stk {
 
-namespace def {}
+struct ScopeAST { //
+  template <typename T>
+  ScopeAST(T &&) {
+  }
+
+  ScopeAST() {
+  }
+
+  template <typename T>
+  void push_back(T &&) {
+  }
+};
+
+struct IfAST {
+  ExpressionAST expression;
+  ScopeAST scope;
+};
+
+struct ReturnAST {
+  ExpressionAST exp;
+  template <typename T>
+  ReturnAST(T &&e) //
+      : exp(std::forward<T>(e)) {
+  }
+  ReturnAST() //
+      : exp() {
+  }
+};
+
+struct FunctionInvocationAST {
+
+  yaml::yaml to_yaml() const {
+    yaml::yaml result;
+    return result;
+  }
+};
+
+struct VariableConstructorAST { //
+};
+
+struct VariableDeclarationAST { //
+};
+
+struct WhileAST { //
+};
+
+struct DoWhileAST { //
+};
+
+struct NumericConstantAST { //
+};
+
+} // namespace stk
 
 #endif

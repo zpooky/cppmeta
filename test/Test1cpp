@@ -221,6 +221,7 @@ bool TestClassFunctions<Axx, Nexx>::operator==(const TestClassFunctions &) const
 
 template <class Axx, std::size_t Nexx>
 void TestClassFunctions<Axx, Nexx>::function2(int) {
+  // return;
 }
 
 void function2(int) {

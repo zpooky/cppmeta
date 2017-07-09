@@ -4,6 +4,7 @@
 #include "ast.h"
 #include "lang.h"
 #include "matcher.h"
+#include <cctype>
 
 namespace ast {
 
@@ -88,6 +89,29 @@ Pattern<Iterator> FunctionName() {
   return {};
 }
 
+template <typename Iterator>
+struct NumericPattern : match::Base<Token, Iterator> {
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = Token;
+
+  StepType operator()(capture_type &result, StepType start) const {
+    if (start.valid && start.it != start.end) {
+      const char *it = *(start.it).token.c_str();
+      while (*it) {
+        if (!isdigit(*it)) {
+          return StepType(start.it, start.end, false);
+        }
+        ++it;
+      }
+      return StepType(start.it + 1, start.end, true);
+    }
+  out:
+    return start;
+  }
+};
+
 // ex: ns::
 template <typename Iterator>
 struct NsParser : public match::Base<Token, Iterator> {
@@ -127,6 +151,7 @@ struct TypeIdentifierParser : match::Base<TypeIdentifier, Iterator> {
     Token t;
     std::vector<Token> refs;
     // TODO capture refs
+    // TODO unsigned int ...
     std::vector<TypeIdentifier> typeArguments;
 
     auto next = it.repeat(namespaces, NsParser<Iterator>())  //

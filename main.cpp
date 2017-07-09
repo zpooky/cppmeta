@@ -12,7 +12,7 @@ int main() {
                                "./entities.h",    "./main.cpp",    "./parser.h",
                                "./parser.cpp"};
 
-  std::vector<String> tests = {"./test/Test1cpp"};
+  std::vector<String> tests = {"./test/Test2cpp"};
 
   // sp::ArrayList<int> a;
   // uint64_t d(0);

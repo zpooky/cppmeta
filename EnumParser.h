@@ -18,13 +18,13 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     Token key;
-    ExpressionAST value;
+    stk::ExpressionAST value;
     auto ret = start          //
                    .step(key) //
                    .option([&](StepType it) {
                      return it      //
                          .step("=") //
-                         .step(value, ExpressionParser<Iterator>());
+                         .step(value, stk::ExpressionParser<Iterator>());
                    });
     return ret;
   }

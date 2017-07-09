@@ -4,8 +4,8 @@
 #include "ExpressionParser.h"
 #include "ParameterParser.h"
 #include "Pattern.h"
+#include "ast.h"
 #include "matcher.h"
-#include "scope_ast.h"
 
 namespace stk {
 
@@ -25,16 +25,16 @@ public:
     return start //
         .repeat(
             [](StepType it) {
-              ast::ExpressionAST exp;
+              ExpressionAST exp;
 
               ScopeAST scope;
               return it
-                  .step("if")                                   //
-                  .step("(")                                    //
-                  .step(exp, ast::ExpressionParser<Iterator>()) //
-                  .step(")")                                    //
-                  .step("{")                                    //
-                  .step(scope, ScopeParser<Iterator>())         //
+                  .step("if")                              //
+                  .step("(")                               //
+                  .step(exp, ExpressionParser<Iterator>()) //
+                  .step(")")                               //
+                  .step("{")                               //
+                  .step(scope, ScopeParser<Iterator>())    //
                   .step("}");
             },
             "else") //
@@ -62,15 +62,15 @@ public:
     std::vector<Token> ns;
     Token name;
     std::vector<ast::TypeIdentifier> typeArguments;
-    std::vector<ast::ExpressionAST> arguments;
+    std::vector<ExpressionAST> arguments;
 
-    return start                                                   //
-        .repeat(ns, ast::NsParser<Iterator>())                     //
-        .step(name, ast::FunctionName<Iterator>())                 //
-        .step(typeArguments, ast::TypeArgumentParser<Iterator>())  //
-        .step("(")                                                 //
-        .repeat(arguments, ast::ExpressionParser<Iterator>(), ",") //
-        .step(")")                                                 //
+    return start                                                  //
+        .repeat(ns, ast::NsParser<Iterator>())                    //
+        .step(name, ast::FunctionName<Iterator>())                //
+        .step(typeArguments, ast::TypeArgumentParser<Iterator>()) //
+        .step("(")                                                //
+        .repeat(arguments, ExpressionParser<Iterator>(), ",")     //
+        .step(")")                                                //
         ;
     // TODO ;
   }
@@ -85,11 +85,11 @@ public:
   using capture_type = ReturnAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
-    ast::ExpressionAST exp;
-    auto ret = start                                               //
-                   .step("return")                                 //
-                   .option(exp, ast::ExpressionParser<Iterator>()) //
-                   .step(";")                                      //
+    ExpressionAST exp;
+    auto ret = start                                          //
+                   .step("return")                            //
+                   .option(exp, ExpressionParser<Iterator>()) //
+                   .step(";")                                 //
         ;
     if (ret) {
       capture = capture_type(exp);
@@ -111,24 +111,24 @@ public:
     // TODO capture
     std::vector<Token> prefix;
     Token variable;
-    ast::ExpressionAST assignment;
+    ExpressionAST assignment;
     return start                                       //
         .repeat(prefix, match::Either({"&", "*"}))     //
         .step(variable, ast::VariableName<Iterator>()) //
         .eitherx(
             [&assignment](StepType it) {
-              return it                                                //
-                  .step("=")                                           //
-                  .step(assignment, ast::ExpressionParser<Iterator>()) //
+              return it                                           //
+                  .step("=")                                      //
+                  .step(assignment, ExpressionParser<Iterator>()) //
                   ;
             },
             [](StepType it) { //
-              std::vector<ast::ExpressionAST> arguments;
+              std::vector<ExpressionAST> arguments;
               Token open;
-              return it                                                      //
-                  .step(open, match::Either({"(", "{"}))                     //
-                  .repeat(arguments, ast::ExpressionParser<Iterator>(), ",") //
-                  .step(open == "(" ? ")" : "}")                             //
+              return it                                                 //
+                  .step(open, match::Either({"(", "{"}))                //
+                  .repeat(arguments, ExpressionParser<Iterator>(), ",") //
+                  .step(open == "(" ? ")" : "}")                        //
                   ;
             }) //
         ;
@@ -167,15 +167,15 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO capture
-    ast::ExpressionAST condition;
+    ExpressionAST condition;
     ScopeAST scope;
-    return start                                            //
-        .step("while")                                      //
-        .step("(")                                          //
-        .step(condition, ast::ExpressionParser<Iterator>()) //
-        .step(")")                                          //
-        .step("{")                                          //
-        .stepx([&scope](StepType it) {                      //
+    return start                                       //
+        .step("while")                                 //
+        .step("(")                                     //
+        .step(condition, ExpressionParser<Iterator>()) //
+        .step(")")                                     //
+        .step("{")                                     //
+        .stepx([&scope](StepType it) {                 //
           return it.step(scope, ScopeParser<Iterator>());
         })         //
         .step("}") //
@@ -193,19 +193,19 @@ public:
 
   StepType operator()(capture_type &, StepType start) const {
     // TODO capture
-    ast::ExpressionAST condition;
+    ExpressionAST condition;
     ScopeAST scope;
     return start                       //
         .step("do")                    //
         .step("{")                     //
         .stepx([&scope](StepType it) { //
           return it.step(scope, ScopeParser<Iterator>());
-        })                                                  //
-        .step("}")                                          //
-        .step("while")                                      //
-        .step("(")                                          //
-        .step(condition, ast::ExpressionParser<Iterator>()) //
-        .step(")")                                          //
+        })                                             //
+        .step("}")                                     //
+        .step("while")                                 //
+        .step("(")                                     //
+        .step(condition, ExpressionParser<Iterator>()) //
+        .step(")")                                     //
         ;
   }
 };

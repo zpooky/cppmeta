@@ -23,7 +23,7 @@ public:
         [&](StepType it) -> StepType { //
           Token junk;
           Token type;
-          TypeExpressionAST exp;
+          stk::TypeExpressionAST exp;
           // ex: typename Type = Type
           // ex: typename Type
           auto ret = it                                                    //
@@ -32,7 +32,7 @@ public:
                          .option([&exp](StepType s) {
                            return s
                                .step("=") //
-                               .step(exp, TypeExpressionParser<Iterator>());
+                               .step(exp, stk::TypeExpressionParser<Iterator>());
                          });
           if (ret) {
             // TODO
@@ -44,7 +44,7 @@ public:
           ParameterEither type;
           std::vector<Token> ref;
           Token name;
-          ExpressionAST exp;
+          stk::ExpressionAST exp;
           // ex: std::Type<wasd<asd>>& label
           // ex: std::uint32_t = 32
           auto ret = it                                                 //
@@ -54,7 +54,7 @@ public:
                          .option([&exp](StepType it) {
                            return it
                                .step("=") //
-                               .step(exp, ExpressionParser<Iterator>());
+                               .step(exp, stk::ExpressionParser<Iterator>());
                          });
           ;
           if (ret) {
