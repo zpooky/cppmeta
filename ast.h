@@ -26,8 +26,7 @@ struct Typed {
   }
 
   Typed(const Token &p_type, const Token &p_name) //
-      : type(p_type),
-        name(p_name) {
+      : type(p_type), name(p_name) {
   }
 };
 
@@ -103,16 +102,12 @@ struct TypeArgumentAST {
   std::vector<TypeArgumentAST> typeArguments;
 
   TypeArgumentAST() //
-      : named(),
-        namespaces(),
-        typeArguments() {
+      : named(), namespaces(), typeArguments() {
   }
 
   TypeArgumentAST(const Token &n, const std::vector<ast::NamespaceAST> &nss,
                   const std::vector<TypeArgumentAST> &ta) //
-      : named(n),
-        namespaces(nss),
-        typeArguments(ta) {
+      : named(n), namespaces(nss), typeArguments(ta) {
   }
 
   yaml::yaml to_yaml() const {
@@ -134,25 +129,16 @@ struct TemplateTypenameAST {
 
   // ex: <size_t i>
   TemplateTypenameAST(const Token &p_type, const Token &p_name) //
-      : typed(p_type),
-        named(p_name),
-        templates{},
-        type(Type::TYPED) {
+      : typed(p_type), named(p_name), templates{}, type(Type::TYPED) {
   }
 
   // ex: <Token>
   TemplateTypenameAST(const Token &p_name) //
-      : typed(),
-        named{p_name},
-        templates(),
-        type(Type::NAMED) {
+      : typed(), named{p_name}, templates(), type(Type::NAMED) {
   }
 
   TemplateTypenameAST() //
-      : typed(),
-        named(),
-        templates(),
-        type(Type::NAMED) {
+      : typed(), named(), templates(), type(Type::NAMED) {
   }
 
   yaml::yaml to_yaml() const {
@@ -200,25 +186,16 @@ struct ParameterTypeAST {
   std::vector<Token> ptrs;
 
   ParameterTypeAST() //
-      : qualifiers(),
-        type(),
-        refs(),
-        ptrs() {
+      : qualifiers(), type(), refs(), ptrs() {
   }
 
   ParameterTypeAST(const std::vector<Token> q, const TypeIdentifier &t,
                    const std::vector<Token> &r, const std::vector<Token> &p) //
-      : qualifiers(q),
-        type(t),
-        refs(r),
-        ptrs(p) {
+      : qualifiers(q), type(t), refs(r), ptrs(p) {
   }
 
   ParameterTypeAST(const ParameterTypeAST &o) //
-      : qualifiers(o.qualifiers),
-        type(o.type),
-        refs(o.refs),
-        ptrs(o.ptrs) {
+      : qualifiers(o.qualifiers), type(o.type), refs(o.refs), ptrs(o.ptrs) {
   }
 
   ~ParameterTypeAST() {
@@ -245,11 +222,22 @@ struct TypeExpressionAST {
 /*ExpressionAST*/
 struct ExpressionAST {
   std::vector<Token> tokens;
-
-  template <typename... Tail>
-  ExpressionAST(Tail &&... tail) //
-      : tokens{std::forward<Token>(tail)...} {
+  ExpressionAST() //
+      : tokens() {
   }
+
+  ExpressionAST(const ExpressionAST &o) //
+      : tokens(o.tokens) {
+  }
+
+  ExpressionAST(const std::vector<Token> &o) //
+      : tokens(o) {
+  }
+
+  // template <typename... Tail>
+  // ExpressionAST(Tail &&... tail) //
+  //     : tokens{std::forward<Token>(tail)...} {
+  // }
 
   yaml::yaml to_yaml() const {
     yaml::yaml result;
@@ -265,24 +253,16 @@ struct FunctionPointerAST {
   std::vector<ParameterAST> paramters;
   //
   FunctionPointerAST() //
-      : returnType(),
-        ref(),
-        name(),
-        paramters() {
+      : returnType(), ref(), name(), paramters() {
   }
 
   FunctionPointerAST(const ParameterTypeAST &rt, const Token &r, const Token &n,
                      const std::vector<ParameterAST> &p)
       //
-      : returnType(rt),
-        ref(r),
-        name(n),
-        paramters(p) {
+      : returnType(rt), ref(r), name(n), paramters(p) {
   }
   FunctionPointerAST(const FunctionPointerAST &o) //
-      : returnType(o.returnType),
-        ref(o.ref),
-        name(o.name),
+      : returnType(o.returnType), ref(o.ref), name(o.name),
         paramters(o.paramters) {
   }
 
@@ -318,7 +298,7 @@ private:
     TheParamType<ParameterTypeAST> type;
     TheParamType<FunctionPointerAST> fp;
     TheParamType<TemplateCArrayAST> carr;
-    //TODO type expression
+    // TODO type expression
 
     // alignas(alignof(ParameterTypeAST)) uint8_t
     // type[sizeof(ParameterTypeAST)];
@@ -460,9 +440,7 @@ struct ParameterAST {
   ExpressionAST defaultValue;
 
   ParameterAST() //
-      : type(),
-        name(),
-        defaultValue() {
+      : type(), name(), defaultValue() {
   }
 
   ParameterAST &operator=(const ParameterAST &o) {
@@ -475,9 +453,7 @@ struct ParameterAST {
   template <typename T>
   ParameterAST(T &&o, const Token &n,
                const ExpressionAST &dv) //
-      : type(std::forward<T>(o)),
-        name(n),
-        defaultValue(dv) {
+      : type(std::forward<T>(o)), name(n), defaultValue(dv) {
   }
 
   ~ParameterAST() {
@@ -512,9 +488,8 @@ struct FunctionDefinitionAST {
   }
 
   FunctionDefinitionAST(const std::vector<tmp::TemplateTypenameAST> &t,
-                        const std::vector<Token> &pre,
-                        const ReturnTypeAST &ret, const Token &n,
-                        const std::vector<ParameterAST> &params,
+                        const std::vector<Token> &pre, const ReturnTypeAST &ret,
+                        const Token &n, const std::vector<ParameterAST> &params,
                         const std::vector<Token> &post, bool pv, bool dd)
       : //
         templates(t),
@@ -545,16 +520,12 @@ struct FunctionDeclarationAST {
   std::vector<ParameterAST> parameters;
 
   FunctionDeclarationAST() //
-      : returnType(),
-        functionName(),
-        parameters() {
+      : returnType(), functionName(), parameters() {
   }
 
   FunctionDeclarationAST(const ParameterTypeAST &r, const Token n,
                          const std::vector<ParameterAST> &p) //
-      : returnType(r),
-        functionName(n),
-        parameters(p) {
+      : returnType(r), functionName(n), parameters(p) {
   }
   //
   yaml::yaml to_yaml() const {
@@ -610,7 +581,6 @@ struct UsingNamespaceAST {
   }
 };
 
-
 struct EnumValueAST {
   Token key;
   ExpressionAST value;
@@ -622,8 +592,7 @@ struct EnumValueAST {
   }
 
   EnumValueAST(const Token &k, const ExpressionAST &v) //
-      : key(k),
-        value(v) {
+      : key(k), value(v) {
   }
 
   yaml::yaml to_yaml() const {
@@ -644,8 +613,7 @@ struct EnumAST {
   }
 
   EnumAST(const Token &n, const std::vector<EnumValueAST> &v) //
-      : typeName(n),
-        values(v) {
+      : typeName(n), values(v) {
   }
 
   yaml::yaml to_yaml() const {
@@ -726,13 +694,11 @@ struct MemberDefinitionAST {
   ParameterEither type;
   Token name;
   MemberDefinitionAST() //
-      : type(),
-        name() {
+      : type(), name() {
   }
 
   MemberDefinitionAST(const ParameterEither &t, const Token &n) //
-      : type(t),
-        name(n) {
+      : type(t), name(n) {
   }
 };
 

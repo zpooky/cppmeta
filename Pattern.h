@@ -104,8 +104,7 @@ template <typename Iterator>
 struct TypeIdentifierParser;
 
 template <typename Iterator>
-struct TypeArgumentParser
-    : public match::Base<std::vector<TypeIdentifier>, Iterator> {
+struct TypeArgumentParser : match::Base<std::vector<TypeIdentifier>, Iterator> {
 
   using StepType = match::Step<Iterator>;
 
@@ -119,7 +118,7 @@ struct TypeArgumentParser
 
 // ex: ns::ns::Type<T,int>
 template <typename Iterator>
-struct TypeIdentifierParser : public match::Base<TypeIdentifier, Iterator> {
+struct TypeIdentifierParser : match::Base<TypeIdentifier, Iterator> {
 
   using StepType = match::Step<Iterator>;
 

@@ -58,13 +58,13 @@ match::Step<Iterator> functionPrototype(ast::FunctionDefinitionAST &capture,
   // TODO capture memDeclRef
   ast::TypeIdentifier memDeclRef;
 
-  auto ret = //
-      start  //
+  auto ret =                                                  //
+      start                                                   //
           .option(templates, ast::TemplateParser<Iterator>()) //
           .repeat(prefix, Either({"constexpr", "friend", "inline", "virtual",
-                                  "static", "extern"}))        //
-          .step(returnType, ast::ReturnTypeParser<Iterator>()) //
-          .option(memDeclRef, MemberDeclRefParser<Iterator>())            //
+                                  "static", "extern"}))              //
+          .step(returnType, ast::ReturnTypeParser<Iterator>())       //
+          .option(memDeclRef, MemberDeclRefParser<Iterator>())       //
           .step(functionName, ast::FunctionName<Iterator>())         //
           .step("(")                                                 //
           .repeat(parameters, ast::ParameterParser<Iterator>(), ",") //
@@ -399,6 +399,7 @@ public:
         .step(dtorType, TypeName<Iterator>()) //
         .step("(")                            //
         .step(")")                            //
+        .option("noexcept")                   //
         .step(";");
   }
 };
@@ -425,6 +426,7 @@ public:
         .step(dtorType, TypeName<Iterator>())                //
         .step("(")                                           //
         .step(")")                                           //
+        .option("noexcept")                                  //
         .step("{")                                           //
         .stepx([](StepType start) {                          //
           stk::ScopeAST stackAST;

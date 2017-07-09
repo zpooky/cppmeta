@@ -32,7 +32,7 @@ public:
     Token e;
     auto ret = start.step(e);
     if (ret) {
-      result = ExpressionAST(e);
+      result = ExpressionAST({e});
     }
     return ret;
   }

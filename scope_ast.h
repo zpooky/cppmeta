@@ -7,6 +7,16 @@
 namespace stk {
 
 struct ScopeAST { //
+  template <typename T>
+  ScopeAST(T &&) {
+  }
+
+  ScopeAST() {
+  }
+
+  template <typename T>
+  void push_back(T &&) {
+  }
 };
 
 struct IfAST {
@@ -15,7 +25,14 @@ struct IfAST {
 };
 
 struct ReturnAST {
-  ast::ExternalAST exp;
+  ast::ExpressionAST exp;
+  template <typename T>
+  ReturnAST(T &&e) //
+      : exp(std::forward<T>(e)) {
+  }
+  ReturnAST() //
+      : exp() {
+  }
 };
 
 struct FunctionInvocationAST {
@@ -26,15 +43,18 @@ struct FunctionInvocationAST {
   }
 };
 
-struct ArgumentAST {
+struct VariableConstructorAST { //
 };
 
-struct VariableConstructorAST{
+struct VariableDeclarationAST { //
 };
 
-struct VariableDeclarationAST{
+struct WhileAST { //
 };
 
-}//namespace stk
+struct DoWhileAST { //
+};
+
+} // namespace stk
 
 #endif

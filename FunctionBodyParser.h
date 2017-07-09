@@ -38,7 +38,7 @@ public:
                   .step("}");
             },
             "else") //
-        .optionx([](StepType it) {
+        .option([](StepType it) {
           ScopeAST scope;
           return it                                 //
               .step("else")                         //
@@ -50,21 +50,7 @@ public:
 };
 
 template <typename Iterator>
-class ArgumentParser : public match::Base<ArgumentAST, Iterator> {
-private:
-  using StepType = match::Step<Iterator>;
-
-public:
-  using capture_type = ArgumentAST;
-
-  StepType operator()(capture_type &capture, StepType start) const {
-    return start;
-  }
-};
-
-template <typename Iterator>
-class FunctionInvocationParser
-    : public match::Base<FunctionInvocationAST, Iterator> {
+struct FunctionInvocationParser : match::Base<FunctionInvocationAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
 
@@ -72,21 +58,21 @@ public:
   using capture_type = FunctionInvocationAST;
 
   StepType operator()(capture_type &capture, StepType start) const {
-    // TODO
+    // TODO capture
     std::vector<Token> ns;
     Token name;
     std::vector<ast::TypeIdentifier> typeArguments;
-    std::vector<ArgumentAST> arguments;
+    std::vector<ast::ExpressionAST> arguments;
 
-    return start                                                  //
-        .repeat(ns, ast::NsParser<Iterator>())                    //
-        .step(name, ast::FunctionName<Iterator>())                //
-        .step(typeArguments, ast::TypeArgumentParser<Iterator>()) //
-        .step("(")                                                //
-        .repeat(arguments, ArgumentParser<Iterator>())            //
-        .step(")")                                                //
+    return start                                                   //
+        .repeat(ns, ast::NsParser<Iterator>())                     //
+        .step(name, ast::FunctionName<Iterator>())                 //
+        .step(typeArguments, ast::TypeArgumentParser<Iterator>())  //
+        .step("(")                                                 //
+        .repeat(arguments, ast::ExpressionParser<Iterator>(), ",") //
+        .step(")")                                                 //
         ;
-    // return start;
+    // TODO ;
   }
 };
 
@@ -100,29 +86,15 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     ast::ExpressionAST exp;
-    auto ret = start               //
-                   .step("return") //
-                   .option(exp, ast::ExpressionParser<Iterator>());
+    auto ret = start                                               //
+                   .step("return")                                 //
+                   .option(exp, ast::ExpressionParser<Iterator>()) //
+                   .step(";")                                      //
+        ;
     if (ret) {
       capture = capture_type(exp);
     }
     return ret;
-  }
-};
-
-template <typename Iterator>
-class ScopeParser : public match::Base<ScopeAST, Iterator> {
-private:
-  using StepType = match::Step<Iterator>;
-
-public:
-  using capture_type = ScopeAST;
-
-  StepType operator()(capture_type &capture, StepType start) const {
-    return StepType(start.it, start.end, true);
-    // while(true){
-    // }
-    // return start;
   }
 };
 
@@ -143,7 +115,7 @@ public:
     return start                                       //
         .repeat(prefix, match::Either({"&", "*"}))     //
         .step(variable, ast::VariableName<Iterator>()) //
-        .either(
+        .eitherx(
             [&assignment](StepType it) {
               return it                                                //
                   .step("=")                                           //
@@ -164,7 +136,8 @@ public:
 };
 
 template <typename Iterator>
-struct VariableDeclaration : match::Base<VariableDeclarationAST, Iterator> {
+struct VariableDeclarationParser
+    : match::Base<VariableDeclarationAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
 
@@ -183,13 +156,139 @@ public:
         ;
   }
 };
-// TODO turnery
-// while
+
+template <typename Iterator>
+struct WhileParser : match::Base<WhileAST, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = WhileAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    // TODO capture
+    ast::ExpressionAST condition;
+    ScopeAST scope;
+    return start                                            //
+        .step("while")                                      //
+        .step("(")                                          //
+        .step(condition, ast::ExpressionParser<Iterator>()) //
+        .step(")")                                          //
+        .step("{")                                          //
+        .stepx([&scope](StepType it) {                      //
+          return it.step(scope, ScopeParser<Iterator>());
+        })         //
+        .step("}") //
+        ;
+  }
+};
+
+template <typename Iterator>
+struct DoWhileParser : match::Base<DoWhileAST, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = DoWhileAST;
+
+  StepType operator()(capture_type &, StepType start) const {
+    // TODO capture
+    ast::ExpressionAST condition;
+    ScopeAST scope;
+    return start                       //
+        .step("do")                    //
+        .step("{")                     //
+        .stepx([&scope](StepType it) { //
+          return it.step(scope, ScopeParser<Iterator>());
+        })                                                  //
+        .step("}")                                          //
+        .step("while")                                      //
+        .step("(")                                          //
+        .step(condition, ast::ExpressionParser<Iterator>()) //
+        .step(")")                                          //
+        ;
+  }
+};
+
+template <typename Iterator>
+class ScopeParser : public match::Base<ScopeAST, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+  template <typename Parser>
+  static auto parse(StepType it) {
+    using Capture = typename Parser::capture_type;
+    Parser parser;
+    Capture ast;
+    return parser(ast, it);
+  }
+
+public:
+  using capture_type = ScopeAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    // return StepType(start.it, start.end, true);
+    auto it = start;
+    while (it.valid && it.it != it.end) {
+      {
+        auto res = parse<WhileParser<Iterator>>(it);
+        if (res) {
+          it = res;
+          capture.push_back(res);
+          continue;
+        }
+      }
+      {
+        auto res = parse<DoWhileParser<Iterator>>(it);
+        if (res) {
+          it = res;
+          capture.push_back(res);
+          continue;
+        }
+      }
+      // {
+      //   auto res = parse<IfParser<Iterator>>(it);
+      //   if (res) {
+      //     it = res;
+      //     capture.push_back(res);
+      //     continue;
+      //   }
+      // }
+      {
+        auto res = parse<FunctionInvocationParser<Iterator>>(it);
+        if (res) {
+          it = res;
+          capture.push_back(res);
+          continue;
+        }
+      }
+      {
+        auto res = parse<VariableDeclarationParser<Iterator>>(it);
+        if (res) {
+          it = res;
+          capture.push_back(res);
+          continue;
+        }
+      }
+      {
+        auto res = parse<ReturnParser<Iterator>>(it);
+        if (res) {
+          it = res;
+          capture.push_back(res);
+          continue;
+        }
+      }
+      break;
+    } // while
+    return it;
+  }
+};
+
+// TODO
+// turnery
 // for
-// do
 // switch
 // operator invocation(implict&explicit)
-// member function invocation
 // chained function invocation
 //(&(*function()))->invoce()
 // randomly occuring (), ex: (1+1) = 1+1
@@ -207,6 +306,8 @@ public:
 // string notation ""
 // litteral support L""
 // throw exception
+// new (int (*[10])());
+// delete ([]{return new int; })();
 
 } // namspeace ast
 
