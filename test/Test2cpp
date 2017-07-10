@@ -12,5 +12,7 @@
 
 template <class Axx, std::size_t Nexx>
 void TestClassFunctions<Axx, Nexx>::function2(int) {
+  while (true) {
+  }
   return;
 }

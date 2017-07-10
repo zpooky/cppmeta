@@ -75,11 +75,6 @@ struct TypeName : public match::Base<Token, Iterator> {
 };
 
 template <typename Iterator>
-Pattern<Iterator> VariableName() {
-  return {};
-}
-
-template <typename Iterator>
 Pattern<Iterator> NamespaceName() {
   return {};
 }
@@ -115,12 +110,39 @@ public:
 // ex: ns::
 template <typename Iterator>
 struct NsParser : public match::Base<Token, Iterator> {
+private:
   using StepType = match::Step<Iterator>;
 
-  StepType operator()(Token &ns, StepType it) const {
-    return it     //
-        .step(ns) //
+public:
+  using capture_type = Token;
+  StepType operator()(capture_type &capture, StepType it) const {
+    return it          //
+        .step(capture) //
         .step("::");
+  }
+};
+
+template <typename Iterator>
+Pattern<Iterator> VariableName() {
+  return {};
+}
+
+template <typename Iterator>
+struct VariableNameRef : match::Base<Token, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = Token;
+
+  StepType operator()(capture_type &t, StepType start) const {
+    // TODO capture
+    std::vector<Token> nss;
+    Token name;
+    return start                              //
+        .repeat(nss, NsParser<Iterator>())    //
+        .step(name, VariableName<Iterator>()) //
+        ;
   }
 };
 
@@ -164,6 +186,6 @@ struct TypeIdentifierParser : match::Base<TypeIdentifier, Iterator> {
     return next;
   }
 };
-}
+} // namespace ast
 
 #endif

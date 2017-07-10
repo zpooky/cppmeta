@@ -965,6 +965,9 @@ struct DoWhileAST { //
 struct NumericConstantAST { //
 };
 
+struct OperatorInvocationAST { //
+};
+
 } // namespace stk
 
 #endif

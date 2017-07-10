@@ -50,33 +50,6 @@ public:
 };
 
 template <typename Iterator>
-struct FunctionInvocationParser : match::Base<FunctionInvocationAST, Iterator> {
-private:
-  using StepType = match::Step<Iterator>;
-
-public:
-  using capture_type = FunctionInvocationAST;
-
-  StepType operator()(capture_type &capture, StepType start) const {
-    // TODO capture
-    std::vector<Token> ns;
-    Token name;
-    std::vector<ast::TypeIdentifier> typeArguments;
-    std::vector<ExpressionAST> arguments;
-
-    return start                                                  //
-        .repeat(ns, ast::NsParser<Iterator>())                    //
-        .step(name, ast::FunctionName<Iterator>())                //
-        .step(typeArguments, ast::TypeArgumentParser<Iterator>()) //
-        .step("(")                                                //
-        .repeat(arguments, ExpressionParser<Iterator>(), ",")     //
-        .step(")")                                                //
-        ;
-    // TODO ;
-  }
-};
-
-template <typename Iterator>
 class ReturnParser : public match::Base<ReturnAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
@@ -146,7 +119,7 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO capture
-    int ix(0), xx = 2, fff{0}, *ff(nullptr), kg, &dd = xx, **iptr = 0;
+    // int ix(0), xx = 2, fff{0}, *ff(nullptr), kg, &dd = xx, **iptr = 0;
     ast::ParameterEither type;
     std::vector<VariableConstructorAST> variables;
     return start                                                     //
@@ -255,14 +228,6 @@ public:
       //   }
       // }
       {
-        auto res = parse<FunctionInvocationParser<Iterator>>(it);
-        if (res) {
-          it = res;
-          capture.push_back(res);
-          continue;
-        }
-      }
-      {
         auto res = parse<VariableDeclarationParser<Iterator>>(it);
         if (res) {
           it = res;
@@ -272,6 +237,14 @@ public:
       }
       {
         auto res = parse<ReturnParser<Iterator>>(it);
+        if (res) {
+          it = res;
+          capture.push_back(res);
+          continue;
+        }
+      }
+      {
+        auto res = parse<ExpressionParser<Iterator>>(it);
         if (res) {
           it = res;
           capture.push_back(res);
@@ -308,6 +281,7 @@ public:
 // throw exception
 // new (int (*[10])());
 // delete ([]{return new int; })();
+// support scopes without {}. ex. if while for
 
 } // namspeace ast
 
