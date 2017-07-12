@@ -15,32 +15,37 @@ template <int s = 1>
 class TestSub18 {};
 
 void fun() {
-  int i = 0;
+  int i = 0 + 0;
   int v(1);
-  int k = (i = v) = 2;
-  ++i;
-  k++;
-
-  k = i-- - k;
-  i = i - --k;
+  // int k = (i = v) = 2;
+  // ++i;
+  //   k++;
+  //
+  //   k = i-- - k;
+  //   i = i - --k;
   int **ip = 0;
-  int ipv = **ip;
-  ++ipv;
-  int fdfd = ~(i = 5);
-  fdfd++;
-
-  fdfd = ~~**ip;
-
-  i = ~(fdfd = 1);
-  ++i;
-  i = fdfd = 1 + i;
-
-  int ik = i = 1 ? k = 32 : k += 39;
-  ++ik;
-
-  // int dfj = (int)i = 1 ? k = 32 : k += 39;
-  int dfj = (int)i;
-  ++dfj;
+  // int ipv = **ip;
+  //   ++ipv;
+  // int fdfd = ~(i = 5);
+  //   fdfd++;
+  //
+  // fdfd = ~~**ip;
+  //
+  //   i = ~(fdfd = 1);
+  //   ++i;
+  //   i = fdfd = 1 + i;
+  //
+  //   int ik = i = 1 ? k = 32 : k += 39;
+  //   ++ik;
+  //
+  //   // int dfj = (int)i = 1 ? k = 32 : k += 39;
+  //   int dfj = (int)i;
+  //   ++dfj;
+  // int jf = i ? i : i ? i : i;
+  // ++jf;
+  std::string s = "wasd"
+                  "fkfk";
+  char c = 's';
 }
 //
 // // namespace ns1 {}

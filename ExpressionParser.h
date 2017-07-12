@@ -56,19 +56,21 @@ public:
 
   StepType operator()(capture_type &result, StepType start) const {
     // int i = +111, dd = -22, dkkd = 33, ffkf = 13ul, jfjf = +-11;
+    // TODO hex,binary
     Token sign;
     Token nom;
     Token fp;
     Token denom;
     return start                                            //
-        .option(sign, match::Either({"-", "+"}))            //
+        .option(sign, match::Either({"-"}))                 //
         .step(nom, ast::NumericPattern<Iterator>())         //
-        .optionx([&fp, &denom](StepType it) {               //
+        .option([&fp, &denom](StepType it) {                //
           return it                                         //
               .step(fp, ".")                                //
               .step(denom, ast::NumericPattern<Iterator>()) //
               ;
-        });
+        }) //
+        ;
   }
 };
 
@@ -194,8 +196,8 @@ public:
     return start //
         .eitherx(
             [](StepType it) { //
-              Token numCnst;
-              return it.step(numCnst, ast::NumericPattern<Iterator>());
+              NumericConstantAST numCnst;
+              return it.step(numCnst, NumericConstantParser<Iterator>());
             },
             [](StepType it) { //
               Token strCnst;
@@ -205,26 +207,27 @@ public:
               Token charCnst;
               return it.step(charCnst, CharacterParser<Iterator>());
             },
-            [](StepType it) { //
-              ExpressionAST scoped;
-              return it.step(scoped, ExpressionScopeParser<Iterator>());
-            },
+            // [](StepType it) { //readd
+            //   ExpressionAST scoped;
+            //   return it.step(scoped, ExpressionScopeParser<Iterator>());
+            // },
             [](StepType it) { //
               Token var;
               return it.step(var, ast::VariableRefParser<Iterator>());
-            },
-            [](StepType it) { //
-              UnaryOperatorInvocationAST exp;
-              return it.step(exp, UnaryOpeatorInvocationParser<Iterator>());
-            },                //
-            [](StepType it) { //
-              TurneryAST exp;
-              return it.step(exp, TurneryParser<Iterator>());
-            },
-            [](StepType it) { //
-              TypeCastAST exp;
-              return it.step(exp, TypeCastParser<Iterator>());
-            } //
+            }
+            // ,
+            // [](StepType it) { //readd
+            //   UnaryOperatorInvocationAST exp;
+            //   return it.step(exp, UnaryOpeatorInvocationParser<Iterator>());
+            // },                //
+            // [](StepType it) { //
+            //   TurneryAST exp;
+            //   return it.step(exp, TurneryParser<Iterator>());
+            // },
+            // [](StepType it) { //readd
+            //   TypeCastAST exp;
+            //   return it.step(exp, TypeCastParser<Iterator>());
+            // } //
 
             ) //
         ;
@@ -334,13 +337,13 @@ public:
               .step(exp, TermParser<Iterator>())           //
               ;
         },
-        [&op, &exp](StepType it) {
-          // postfix decrement operator
-          return it                                        //
-              .step(exp, TermParser<Iterator>())           //
-              .step(op, TokenJoinParser<Iterator>({"--"})) //
-              ;
-        },
+        // [&op, &exp](StepType it) {
+        //   // postfix decrement operator
+        //   return it                                        //
+        //       .step(exp, TermParser<Iterator>())           //
+        //       .step(op, TokenJoinParser<Iterator>({"--"})) //
+        //       ;
+        // },
         [&op, &exp](StepType it) {
           // boolean negate opeator
           return it                              //
@@ -362,13 +365,13 @@ public:
               .step(exp, TermParser<Iterator>())           //
               ;
         },
-        [&op, &exp](StepType it) {
-          // postfix increment opeator
-          return it                                        //
-              .step(exp, TermParser<Iterator>())           //
-              .step(op, TokenJoinParser<Iterator>({"++"})) //
-              ;
-        },
+        // [&op, &exp](StepType it) {
+        //   // postfix increment opeator
+        //   return it                                        //
+        //       .step(exp, TermParser<Iterator>())           //
+        //       .step(op, TokenJoinParser<Iterator>({"++"})) //
+        //       ;
+        // },
         [&op, &exp](StepType it) {
           // bitwise inverse opeator
           return it                              //
@@ -456,51 +459,53 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     auto it = start;
-    while (it.valid && it.it != it.end) {
-      {
-        auto res = parse<ExpressionScopeParser<Iterator>>(it);
-        if (res) {
-          it = res;
-          capture.push_back(res);
-          continue;
-        }
+    // while (it.valid && it.it != it.end) {
+    // {
+    //   auto res = parse<ExpressionScopeParser<Iterator>>(it);
+    //   if (res) {
+    //     it = res;
+    //     capture.push_back(res);
+    //     return it;
+    //   }
+    // }
+    {
+      auto res = parse<BinaryOpeatorInvocationParser<Iterator>>(it);
+      if (res) {
+        it = res;
+        capture.push_back(res);
+        return it;
       }
-      {
-        auto res = parse<BinaryOpeatorInvocationParser<Iterator>>(it);
-        if (res) {
-          it = res;
-          capture.push_back(res);
-          continue;
-        }
+    }
+    // {
+    //   auto res = parse<FunctionInvocationParser<Iterator>>(it);
+    //   if (res) {
+    //     it = res;
+    //     capture.push_back(res);
+    //     return it;
+    //   }
+    // }
+    {
+      auto res = parse<TermParser<Iterator>>(it);
+      if (res) {
+        it = res;
+        capture.push_back(res);
+        return it;
       }
-      {
-        auto res = parse<FunctionInvocationParser<Iterator>>(it);
-        if (res) {
-          it = res;
-          capture.push_back(res);
-          continue;
-        }
-      }
-      {
-        auto res = parse<TermParser<Iterator>>(it);
-        if (res) {
-          it = res;
-          capture.push_back(res);
-          continue;
-        }
-      }
-      {
-        auto res = parse<AssignmentParser<Iterator>>(it);
-        if (res) {
-          it = res;
-          capture.push_back(res);
-          continue;
-        }
-      }
-      break;
-    } // while
-    bool foundMatching = it != start;
-    return StepType(it.it, it.end, foundMatching);
+    }
+    // {
+    //   auto res = parse<AssignmentParser<Iterator>>(it);
+    //   if (res) {
+    //     it = res;
+    //     capture.push_back(res);
+    //     // continue;
+    //     return it;
+    //   }
+    // }
+    //   break;
+    // } // while
+    // bool foundMatching = it != start;
+    // return StepType(it.it, it.end, foundMatching);
+    return StepType(it.it, it.end, false);
   }
 };
 } // namespace stk

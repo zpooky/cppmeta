@@ -92,7 +92,6 @@ public:
   using capture_type = Token;
 
   StepType operator()(capture_type &result, StepType start) const {
-    // TODO hex,binary
     if (start.valid && start.it != start.end) {
       const char *it = (*start.it).token.c_str();
       while (*it) {
