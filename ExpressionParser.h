@@ -207,10 +207,10 @@ public:
               Token charCnst;
               return it.step(charCnst, CharacterParser<Iterator>());
             },
-            // [](StepType it) { //readd
-            //   ExpressionAST scoped;
-            //   return it.step(scoped, ExpressionScopeParser<Iterator>());
-            // },
+            [](StepType it) { //readd
+              ExpressionAST scoped;
+              return it.step(scoped, ExpressionScopeParser<Iterator>());
+            },
             [](StepType it) { //
               Token var;
               return it.step(var, ast::VariableRefParser<Iterator>());

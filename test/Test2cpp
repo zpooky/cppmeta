@@ -16,7 +16,9 @@ class TestSub18 {};
 
 void fun() {
   int i = 0 + 0;
+  int i2 = (0 + 0);
   int v(1);
+  int v2((1));
   // int k = (i = v) = 2;
   // ++i;
   //   k++;
@@ -33,7 +35,7 @@ void fun() {
   //
   //   i = ~(fdfd = 1);
   //   ++i;
-  //   i = fdfd = 1 + i;
+  // i = fdfd = 1 + i;
   //
   //   int ik = i = 1 ? k = 32 : k += 39;
   //   ++ik;
@@ -46,6 +48,7 @@ void fun() {
   std::string s = "wasd"
                   "fkfk";
   char c = 's';
+  char c2 = ('s');
 }
 //
 // // namespace ns1 {}
