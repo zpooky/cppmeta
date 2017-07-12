@@ -6,6 +6,7 @@
 #include <vector>
 
 namespace ast {
+struct ForwardRefClassAST;
 struct ClassAST;
 struct NamespaceAST;
 struct UsingNamespaceAST;
@@ -50,11 +51,18 @@ struct ExpressionAST {
   //     : tokens{std::forward<Token>(tail)...} {
   // }
 
+  template <typename T>
+  void push_back(const T &) {
+    // TODO
+  }
+
   yaml::yaml to_yaml() const {
     yaml::yaml result;
     result.push_back("exp", yaml::List(tokens));
     return result;
   }
+};
+struct TermAST { //
 };
 } // namespace stk
 
@@ -709,6 +717,7 @@ struct MemberDefinitionAST {
 /*ScopeAST*/
 struct ScopeAST {
   // types
+  std::vector<ForwardRefClassAST> forwardRef;
   std::vector<ClassAST> classes;
   std::vector<EnumAST> enums;
   // preprocess
@@ -735,6 +744,11 @@ struct ScopeAST {
   std::vector<DtorDeclarationAST> dtorDeclarations;
   // member
   std::vector<MemberDefinitionAST> memberDefinitions;
+
+  /*ClassForwardRefAST*/
+  void push_back(const ForwardRefClassAST &ast) {
+    forwardRef.push_back(ast);
+  }
 
   /*ClassAST*/
   void push_back(const ClassAST &ast) {
@@ -846,6 +860,19 @@ struct NamespaceAST : ScopeAST {
   //   return result;
   // }
 };
+/*ClassForwardRefAST*/
+struct ForwardRefClassAST { //
+  Token type;
+  Token name;
+  std::vector<tmp::TemplateTypenameAST> templates;
+  ForwardRefClassAST() //
+      : type(), name(), templates() {
+  }
+  ForwardRefClassAST(const Token &t, const Token &n,
+                     const std::vector<tmp::TemplateTypenameAST> &tmps) //
+      : type(t), name(n), templates(tmps) {
+  }
+};
 
 /*ClassAST*/
 // ex:
@@ -902,17 +929,9 @@ struct FileAST : ScopeAST { //
 };
 } // namespace ast
 
-namespace ref {}
-
-namespace decl {
-struct Class {
-  /* template<typename T>
-   * class Name;
-   */
-};
-}
 namespace stk {
 
+/*Stack Scope AST*/
 struct ScopeAST { //
   template <typename T>
   ScopeAST(T &&) {
@@ -926,11 +945,19 @@ struct ScopeAST { //
   }
 };
 
+/*IfAST*/
 struct IfAST {
   ExpressionAST expression;
   ScopeAST scope;
 };
 
+struct TurneryAST { //
+};
+
+struct TypeCastAST { //
+};
+
+/*ReturnAST*/
 struct ReturnAST {
   ExpressionAST exp;
   template <typename T>
@@ -942,6 +969,7 @@ struct ReturnAST {
   }
 };
 
+/*FunctionInvocationAST*/
 struct FunctionInvocationAST {
 
   yaml::yaml to_yaml() const {
@@ -950,22 +978,36 @@ struct FunctionInvocationAST {
   }
 };
 
+/*VariableConstructorAST*/
 struct VariableConstructorAST { //
 };
 
+/*VariableDeclarationAST*/
 struct VariableDeclarationAST { //
 };
 
+/*VariableAssignmentAST*/
+struct VariableAssignmentAST { //
+};
+
+/*WhileAST*/
 struct WhileAST { //
 };
 
+/*DoWhileAST*/
 struct DoWhileAST { //
 };
 
+/*NumericConstantAST*/
 struct NumericConstantAST { //
 };
 
-struct OperatorInvocationAST { //
+/*BinaryOperatorInvocationAST*/
+struct BinaryOperatorInvocationAST { //
+};
+
+/*UnaryOperatorInvocationAST*/
+struct UnaryOperatorInvocationAST { //
 };
 
 } // namespace stk

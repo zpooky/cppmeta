@@ -154,6 +154,15 @@ match::Step<sp::ArrayList<Token>::const_iterator> generic_scope( //
         continue;
       }
     }
+    {
+      ast::ForwardRefClassAST ast;
+      auto next = start.step(ast, ast::ForwardRefClassParser<Iterator>());
+      if (next.valid) {
+        result.push_back(ast);
+        start = next;
+        continue;
+      }
+    }
     return start;
   }
   return start;

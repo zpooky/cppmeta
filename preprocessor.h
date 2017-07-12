@@ -11,8 +11,7 @@
 namespace ast {
 
 template <typename Iterator>
-class IfNotDefineMacroParser
-    : public match::Base<pp::IfNotDefinMacroAST, Iterator> {
+struct IfNotDefineMacroParser : match::Base<pp::IfNotDefinMacroAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
 

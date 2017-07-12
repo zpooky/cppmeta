@@ -11,15 +11,13 @@
 
 namespace ast {
 template <typename Iterator>
-class InheritanceParser
-    : public match::Base<std::vector<InheritanceAST>, Iterator> {
+struct InheritanceParser : match::Base<std::vector<InheritanceAST>, Iterator> {
   using StepType = match::Step<Iterator>;
 
 public:
   using capture_type = std::vector<InheritanceAST>;
 
-  StepType operator()(std::vector<InheritanceAST> &result,
-                      StepType step) const {
+  StepType operator()(capture_type &result, StepType step) const {
     return step    //
         .step(":") //
         .repeat(
@@ -63,6 +61,31 @@ public:
 }; // InheritanceParser
 
 template <typename Iterator>
+struct ForwardRefClassParser : match::Base<ForwardRefClassAST, Iterator> {
+private:
+  using StepType = match::Step<Iterator>;
+
+public:
+  using capture_type = ForwardRefClassAST;
+
+  StepType operator()(capture_type &capture, StepType start) const {
+    Token name;
+    Token tq;
+    std::vector<tmp::TemplateTypenameAST> templates;
+    auto ret = start                                              //
+                   .option(templates, TemplateParser<Iterator>()) //
+                   .step(tq, match::Either({"class", "struct"}))  //
+                   .step(name, TypeName<Iterator>())              //
+                   .step(";")                                     //
+        ;
+    if (ret) {
+      capture = capture_type(tq, name, templates);
+    }
+    return ret;
+  }
+};
+
+template <typename Iterator>
 class ClassParser : public match::Base<ClassAST, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
@@ -70,23 +93,23 @@ private:
 public:
   using capture_type = ClassAST;
 
-  StepType operator()(ClassAST &capture, StepType start) const {
+  StepType operator()(capture_type &capture, StepType start) const {
     Token tq;
     Token name;
 
     std::vector<InheritanceAST> inherits;
     std::vector<tmp::TemplateTypenameAST> templates;
 
-    //TODO capture templateSpecialization
+    // TODO capture templateSpecialization
     std::vector<TypeIdentifier> templateSpec;
-    //TODO struct SchemaValidatorContext final : public base {
+    // TODO struct SchemaValidatorContext final : public base {
 
     return start
         .option(templates, TemplateParser<Iterator>())         //
         .step(tq, match::Either({"union", "class", "struct"})) //
         .step(name, TypeName<Iterator>())                      //
-        .option(templateSpec, TypeArgumentParser<Iterator>()) //
-        .option(inherits, InheritanceParser<Iterator>())      //
+        .option(templateSpec, TypeArgumentParser<Iterator>())  //
+        .option(inherits, InheritanceParser<Iterator>())       //
         .step("{")
         .stepx([&name, &inherits, &templates, &tq, &capture](StepType it) {
           match::Either scopes({"public", "private", "protected"});

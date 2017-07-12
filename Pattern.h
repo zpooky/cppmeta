@@ -92,8 +92,9 @@ public:
   using capture_type = Token;
 
   StepType operator()(capture_type &result, StepType start) const {
+    // TODO hex,binary
     if (start.valid && start.it != start.end) {
-      const char *it = *(start.it).token.c_str();
+      const char *it = (*start.it).token.c_str();
       while (*it) {
         if (!isdigit(*it)) {
           return StepType(start.it, start.end, false);
@@ -128,7 +129,7 @@ Pattern<Iterator> VariableName() {
 }
 
 template <typename Iterator>
-struct VariableNameRef : match::Base<Token, Iterator> {
+struct VariableRefParser : match::Base<Token, Iterator> {
 private:
   using StepType = match::Step<Iterator>;
 
@@ -137,6 +138,7 @@ public:
 
   StepType operator()(capture_type &t, StepType start) const {
     // TODO capture
+    // TODO dedicated AST
     std::vector<Token> nss;
     Token name;
     return start                              //

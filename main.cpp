@@ -7,12 +7,16 @@
 
 using Iterator = sp::ArrayList<Token>::const_iterator;
 
-int main() {
+int main(int argc, const char **args) {
   std::vector<String> files = {"./tokenizer.cpp", "./tokenizer.h", "./String.h",
                                "./entities.h",    "./main.cpp",    "./parser.h",
                                "./parser.cpp"};
+  const char *target = "./test/Test2cpp";
+  if (argc > 1) {
+    target = args[1];
+  }
 
-  std::vector<String> tests = {"./test/Test2cpp"};
+  std::vector<String> tests = {target};
 
   // sp::ArrayList<int> a;
   // uint64_t d(0);

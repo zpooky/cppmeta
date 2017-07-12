@@ -110,6 +110,7 @@ public:
       if (it != end) {
         SelfType res = f(*this);
         if (res.valid) {
+          // assert(res != *this);
           return res;
         }
       }
@@ -152,8 +153,9 @@ public:
   SelfType step(Out &out, const Base<Out, Iterator> &f) {
     if (valid) {
       if (it != end) {
-        SelfType s = *this;
-        return f(out, s);
+        auto result = f(out, *this);
+        // assert(result.valid && result != *this);
+        return result;
       }
     }
     return SelfType(it, end, valid);
@@ -188,6 +190,7 @@ public:
       if (it != end) {
         SelfType res = f(out, *this);
         if (res) {
+          assert(res != *this);
           return res;
         }
       }
@@ -277,6 +280,7 @@ public:
     if (valid) {
       Step<Iterator> current = f(*this);
       if (current.valid) {
+        assert(current != *this);
         return current;
       }
     }
@@ -294,6 +298,7 @@ public:
       typename Out::value_type capture;
       SelfType result = f(capture, current);
       if (result.valid) {
+        assert(result != current);
         out.push_back(capture);
         current = result;
         if (current.it != current.end) {
@@ -327,6 +332,7 @@ public:
     if (current.valid) {
       SelfType result = f(current);
       if (result) {
+        assert(result != current);
         current = result;
         if (current.it != current.end) {
           if (*current.it == separator) {
@@ -347,6 +353,7 @@ public:
       typename Out::value_type capture;
       SelfType result = f(capture, current);
       if (result) {
+        assert(result != current);
         out.push_back(capture);
         current = result;
         if (current.it != current.end) {
@@ -371,6 +378,14 @@ public:
 
   operator bool() {
     return valid;
+  }
+
+  bool operator==(const SelfType &o) const {
+    return o.it == it && valid == o.valid;
+  }
+
+  bool operator!=(const SelfType &o) const {
+    return !operator==(o);
   }
 
   template <typename Function1, typename... Function>
@@ -424,7 +439,9 @@ joins(const Collection &c) {
 /*TokenJoinParser*/
 template <typename Iterator>
 class TokenJoinParser : public match::Base<Token, Iterator> {
+private:
   using StepType = match::Step<Iterator>;
+
   std::vector<String> m_compare;
 
   StepType match(StepType start, const String &match,

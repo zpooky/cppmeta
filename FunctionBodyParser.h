@@ -12,6 +12,7 @@ namespace stk {
 template <typename Iterator>
 class ScopeParser;
 
+/*IfParser*/
 template <typename Iterator>
 class IfParser : public match::Base<IfAST, Iterator> {
 private:
@@ -49,6 +50,7 @@ public:
   }
 };
 
+/*ReturnParser*/
 template <typename Iterator>
 class ReturnParser : public match::Base<ReturnAST, Iterator> {
 private:
@@ -71,6 +73,7 @@ public:
   }
 };
 
+/*VariableConstructParser*/
 // ex: variable = 1+1
 template <typename Iterator>
 struct VariableConstructParser : match::Base<VariableConstructorAST, Iterator> {
@@ -108,6 +111,7 @@ public:
   }
 };
 
+/*VariableDeclarationParser*/
 template <typename Iterator>
 struct VariableDeclarationParser
     : match::Base<VariableDeclarationAST, Iterator> {
@@ -130,6 +134,7 @@ public:
   }
 };
 
+/*WhileParser*/
 template <typename Iterator>
 struct WhileParser : match::Base<WhileAST, Iterator> {
 private:
@@ -156,6 +161,7 @@ public:
   }
 };
 
+/*DoWhileParser*/
 template <typename Iterator>
 struct DoWhileParser : match::Base<DoWhileAST, Iterator> {
 private:
@@ -183,6 +189,7 @@ public:
   }
 };
 
+/*ScopeParser*/
 template <typename Iterator>
 class ScopeParser : public match::Base<ScopeAST, Iterator> {
 private:
