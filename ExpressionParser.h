@@ -207,27 +207,27 @@ public:
               Token charCnst;
               return it.step(charCnst, CharacterParser<Iterator>());
             },
-            [](StepType it) { //readd
+            [](StepType it) { //
               ExpressionAST scoped;
               return it.step(scoped, ExpressionScopeParser<Iterator>());
             },
-            [](StepType it) { //
-              Token var;
-              return it.step(var, ast::VariableRefParser<Iterator>());
-            }
-            // ,
+            // [](StepType it) { //
+            //   Token var;
+            //   return it.step(var, ast::VariableRefParser<Iterator>());
+            // },
             // [](StepType it) { //readd
             //   UnaryOperatorInvocationAST exp;
-            //   return it.step(exp, UnaryOpeatorInvocationParser<Iterator>());
+            //   return it.step(exp,
+            //   UnaryOpeatorInvocationParser<Iterator>());
             // },                //
             // [](StepType it) { //
             //   TurneryAST exp;
             //   return it.step(exp, TurneryParser<Iterator>());
             // },
-            // [](StepType it) { //readd
-            //   TypeCastAST exp;
-            //   return it.step(exp, TypeCastParser<Iterator>());
-            // } //
+            [](StepType it) { // readd
+              TypeCastAST exp;
+              return it.step(exp, TypeCastParser<Iterator>());
+            } //
 
             ) //
         ;
@@ -245,13 +245,15 @@ public:
 
   StepType operator()(capture_type &capture, StepType start) const {
     // TODO capture
+    // TODO change to ParameterEitherParser
     ast::TypeIdentifier type;
     TermAST exp;
     return start                                           //
         .step("(")                                         //
         .step(type, ast::TypeIdentifierParser<Iterator>()) //
+        .step(")")                                         //
         .step(exp, TermParser<Iterator>())                 //
-        .step(")");                                        //
+        ;
   }
 };
 

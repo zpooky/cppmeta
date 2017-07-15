@@ -179,8 +179,8 @@ struct TypeIdentifierParser : match::Base<TypeIdentifier, Iterator> {
 
     auto next = it.repeat(namespaces, NsParser<Iterator>())  //
                     .step(t, TypeName<Iterator>())           //
-                    .repeat(refs, match::Either({"*", "&"})) //
-                    .option(typeArguments, TypeArgumentParser<Iterator>());
+                    .option(typeArguments, TypeArgumentParser<Iterator>())//
+                    ;
     if (next) {
       result = TypeIdentifier(t, typeArguments, namespaces);
     }

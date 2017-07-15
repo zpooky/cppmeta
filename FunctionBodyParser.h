@@ -93,10 +93,11 @@ public:
         .step(variable, ast::VariableName<Iterator>()) //
         .eitherx(
             [&assignment](StepType it) {
-              return it                                           //
-                  .step("=")                                      //
-                  .step(assignment, ExpressionParser<Iterator>()) //
+              auto ret = it                                                  //
+                             .step("=")                                      //
+                             .step(assignment, ExpressionParser<Iterator>()) //
                   ;
+              return ret;
             },
             [](StepType it) { //
               std::vector<ExpressionAST> arguments;
